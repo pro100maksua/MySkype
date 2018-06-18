@@ -1,0 +1,50 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MySkype.Client"
+        Height="620"
+        Width="1000">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto"/>
+      <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+
+    <ListBox Name="friends" Grid.Column="0" Grid.Row="1" Background="White" Height="420" Width="300">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Grid Margin="0,2">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="100" />
+              <ColumnDefinition Width="200" />
+            </Grid.ColumnDefinitions> 
+            <Grid.RowDefinitions>
+              <RowDefinition Height="100"/>
+            </Grid.RowDefinitions>
+            
+            <Image Grid.Column="0" Stretch="Fill" Source="{Binding Avatar.Bitmap}"/>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" FontSize="24" Text="{Binding FullName}"/>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+
+    <ContentControl Name="one"
+     Grid.Column="0"
+     Grid.Row="0"
+     Background="AliceBlue"
+     Height="200"
+     Width="300"/>
+
+    <ContentControl Name="bigControl"
+     Grid.Column="1"
+     Grid.RowSpan="2"
+     Background="Green"
+     Height="620"
+     Width="700"/>
+  </Grid>
+</Window>

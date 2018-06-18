@@ -1,0 +1,50 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CallRequestView" Width="220" Height="255">
+  <StackPanel Width="200">
+    <Ellipse Margin="0,10" Height="100" Width="100" HorizontalAlignment="Center">
+      <Ellipse.Fill>
+        <ImageBrush Source="{Binding Avatar.Bitmap}"/>
+      </Ellipse.Fill>
+    </Ellipse>
+
+    <TextBlock HorizontalAlignment="Center"  FontSize="24" Text="{Binding FullName}"/>
+    <TextBlock HorizontalAlignment="Center" Text="Incoming call..."/>
+
+    <StackPanel Margin="0,20" HorizontalAlignment="Center" Orientation="Horizontal">
+      <Button Name="RejectCallButton" Margin="10,10,10,10" HorizontalAlignment="Right" Width="40" Height="40">
+        <Button.Template>
+          <ControlTemplate>
+            <Ellipse Height="40" Width="40">
+              <Ellipse.Fill>
+                <ImageBrush Source="resm:MySkype.Client.Assets.endCall.png"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+      <Button Name="AcceptAudioCallButton" Margin="10,10,10,10" HorizontalAlignment="Right" Width="40" Height="40">
+        <Button.Template>
+          <ControlTemplate>
+            <Ellipse Height="40" Width="40">
+              <Ellipse.Fill>
+                <ImageBrush Source="resm:MySkype.Client.Assets.beginCall.png"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+      <Button Name="AcceptVideoCallButton" Margin="10,10,10,10" HorizontalAlignment="Right" Width="40" Height="40">
+        <Button.Template>
+          <ControlTemplate>
+            <Ellipse Height="40" Width="40">
+              <Ellipse.Fill>
+                <ImageBrush Source="resm:MySkype.Client.Assets.beginVideoCall.png"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+    </StackPanel>
+  </StackPanel>
+</Window>

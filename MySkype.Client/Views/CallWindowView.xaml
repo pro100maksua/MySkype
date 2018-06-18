@@ -1,0 +1,62 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CallWindowView" Width="700" Height="550">
+  <StackPanel Grid.Row="1" Background="DarkSlateGray">
+    <Ellipse Margin="0,10" Height="100" Width="100" HorizontalAlignment="Center">
+      <Ellipse.Fill>
+        <ImageBrush Source="{Binding Caller.Avatar.Bitmap}"/>
+      </Ellipse.Fill>
+    </Ellipse>
+
+    <TextBlock HorizontalAlignment="Center"  FontSize="24" Text="{Binding Caller.FullName}"/>
+    <TextBlock HorizontalAlignment="Center"  Text="{Binding Duration}"/>
+    <TextBlock HorizontalAlignment="Center"  Text="{Binding Hello}"/>
+    
+    <StackPanel Margin="0,20" HorizontalAlignment="Center" Orientation="Horizontal">
+      <Button Name="ToggleMuteButton" Margin="10,10,10,10" Width="40" Height="40">
+        <Button.Template>
+          <ControlTemplate>
+            <Ellipse Height="40" Width="40">
+              <Ellipse.Fill>
+                <ImageBrush Source="resm:MySkype.Client.Assets.unmute.png"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>     
+      <Button Name="ToggleMicroButton" Margin="10,10,10,10" Width="40" Height="40">
+        <Button.Template>
+          <ControlTemplate>
+            <Ellipse Height="40" Width="40">
+              <Ellipse.Fill>
+                <ImageBrush Source="resm:MySkype.Client.Assets.micro.png"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>     
+      <Button Name="ToggleVideoButton" Margin="10,10,10,10" Width="40" Height="40">
+        <Button.Template>
+          <ControlTemplate>
+            <Ellipse Height="40" Width="40">
+              <Ellipse.Fill>
+                <ImageBrush Source="resm:MySkype.Client.Assets.vcall.png"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>     
+      <Button Name="StopCallButton" Margin="10,10,10,10" Width="40" Height="40">
+        <Button.Template>
+          <ControlTemplate>
+            <Ellipse Height="40" Width="40">
+              <Ellipse.Fill>
+                <ImageBrush Source="resm:MySkype.Client.Assets.endCall.png"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+    </StackPanel>
+  </StackPanel>
+</Window>

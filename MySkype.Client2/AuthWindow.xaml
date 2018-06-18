@@ -1,0 +1,20 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AuthWindow" Height="400" Width="400">
+  <StackPanel Width="200" HorizontalAlignment="Center">
+    
+    <ContentControl Height="150" Width="150">
+      <Image Name="authImage" Stretch="Fill"></Image>
+    </ContentControl>
+    
+    <TextBlock>Login</TextBlock>
+    
+    <TextBox Name="login">Plotva</TextBox>
+
+    <TextBlock>Password</TextBlock>
+    
+    <TextBox Name="password">plotva</TextBox>
+
+    <Button Name="signInButton">Sign in</Button>
+  </StackPanel>
+</Window>

@@ -1,0 +1,172 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="resm:MySkype.Client.Assets.avalonia-logo.ico"
+        Title="MySkype" Height="620" Width="1000">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="90"/>
+      <RowDefinition Height="530"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="300"/>
+      <ColumnDefinition Width="700"/>
+    </Grid.ColumnDefinitions>
+    <Grid Grid.Column="0" Grid.Row="0" Height="90">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="60"/>
+        <RowDefinition Height="30"/>
+      </Grid.RowDefinitions>
+
+      <ContentControl Grid.Row="0" Grid.ColumnSpan="3">
+        <StackPanel Orientation="Horizontal">
+          <Button Width="60" Height="60" Command="{Binding ChoosePhotoAsync}">
+            <Button.Template>
+              <ControlTemplate>
+                <Ellipse Height="60" Width="60">
+                  <Ellipse.Fill>
+                    <ImageBrush Source="{Binding User.Avatar.Bitmap}"/>
+                  </Ellipse.Fill>
+                </Ellipse>
+              </ControlTemplate>
+            </Button.Template>
+          </Button>
+
+
+          <TextBlock VerticalAlignment="Center" FontSize="24" Text="{Binding User.FullName}"/>
+        </StackPanel>
+      </ContentControl>
+
+      <TextBox Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding SearchQuery}" Name="SearchTextBox"/>
+    </Grid>
+
+    <TabControl Grid.Column="0" Grid.Row="1" Height="530">
+      <TabItem Header="Contacts">
+        <ListBox Items="{Binding Contacts}" Name="Contacts">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal">
+                <Ellipse Height="60" Width="60">
+                  <Ellipse.Fill>
+                    <ImageBrush  Stretch="Fill" Source="{Binding Avatar.Bitmap}"/>
+                  </Ellipse.Fill>
+                </Ellipse>
+
+                <TextBlock Width="230" Height="40" FontSize="16" Text="{Binding FullName}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </TabItem>
+
+      <TabItem Header="Calls">
+        <ListBox Items="{Binding Calls}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="100" />
+                  <ColumnDefinition Width="200" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="100"/>
+                </Grid.RowDefinitions>
+
+                <Ellipse Grid.Column="0" Height="100" Width="100">
+                  <Ellipse.Fill>
+                    <ImageBrush  Stretch="Fill" Source="{Binding Avatar.Bitmap}"/>
+                  </Ellipse.Fill>
+                </Ellipse>
+
+                <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding FullName}"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </TabItem>
+
+      <TabItem Header="Notifications" Name="test">
+        <ListBox Items="{Binding Notifications}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Width="230" Height="40" FontSize="24" Text="{Binding SenderName}"/>
+                <Button Width="40" Height="40"
+                        Command="{Binding DataContext.AddFriendAsync, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
+                        CommandParameter="{Binding SenderId}">
+                  <Button.Template>
+                    <ControlTemplate>
+                      <Image Source="resm:MySkype.Client.Assets.add.png" Stretch="Fill"/>
+                    </ControlTemplate>
+                  </Button.Template>
+                </Button>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </TabItem>
+    </TabControl>
+
+    <ListBox Name="SearchResult" Items="{Binding SearchResult}"  Grid.Column="0" Grid.Row="1" Height="530" IsVisible="{Binding !IsSearchBoxEmpty}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal">
+            <Ellipse Height="60" Width="60">
+              <Ellipse.Fill>
+                <ImageBrush  Stretch="Fill" Source="{Binding Avatar.Bitmap}"/>
+              </Ellipse.Fill>
+            </Ellipse>
+
+            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" Text="{Binding FullName}"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <StackPanel IsVisible="{Binding #Large.!IsVisible}" Grid.Column="1" Grid.RowSpan="2">
+      <TextBlock HorizontalAlignment="Center" Text="{Binding User.FirstName}" />
+      <Ellipse Height="100" Width="100">
+        <Ellipse.Fill>
+          <ImageBrush  Stretch="Fill" Source="{Binding User.Avatar.Bitmap}"/>
+        </Ellipse.Fill>
+      </Ellipse>
+    </StackPanel>
+
+    <Grid Name="Large" Grid.Column="1" Grid.RowSpan="2">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="70" />
+        <RowDefinition Height="550"/>
+      </Grid.RowDefinitions>
+
+      <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding LargeUser.FullName}" />
+
+      <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+        <Button IsVisible="{Binding !IsLargeUserFriend}" HorizontalAlignment="Left" Width="40" Height="40"
+                          Command="{Binding SendFriendRequestAsync}">
+          <Button.Template>
+            <ControlTemplate>
+              <Image Source="resm:MySkype.Client.Assets.add.png" Stretch="Fill"/>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+        <Button IsVisible="{Binding IsLargeUserFriend}" HorizontalAlignment="Right" Width="40" Height="40"
+                    Command="{Binding SendAudioCallRequestAsync}">
+          <Button.Template>
+            <ControlTemplate>
+              <Image Source="resm:MySkype.Client.Assets.acall.png" Stretch="Fill"/>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+        <Button IsVisible="{Binding !IsLargeUserFriend}" HorizontalAlignment="Right" Width="55" Height="55"
+                      Command="{Binding SendVideoCallRequestAsync}">
+          <Button.Template>
+            <ControlTemplate>
+              <Image Source="resm:MySkype.Client.Assets.vcall.png" Stretch="Fill"/>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+      </StackPanel>
+
+    </Grid>
+  </Grid>
+</Window>

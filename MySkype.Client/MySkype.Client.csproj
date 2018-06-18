@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="**\*.xaml">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="AuthWindow.xaml" />
+    <None Remove="Views\CallRequestView.xaml" />
+    <None Remove="Views\CallWindowView.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.6.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.6.1" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.6.1" />
+    <PackageReference Include="Microsoft.identitymodel.tokens" Version="5.2.2" />
+    <PackageReference Include="newtonsoft.json" Version="11.0.2" />
+    <PackageReference Include="restsharp" Version="106.3.1" />
+    <PackageReference Include="system.identitymodel.tokens.jwt" Version="5.2.2" />
+    <PackageReference Include="system.net.http" Version="4.3.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Views\AuthView.xaml.cs">
+      <DependentUpon>AuthView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\CallRequestView.xaml.cs">
+      <DependentUpon>CallRequestView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\MainWindowView.xaml.cs">
+      <DependentUpon>MainWindowView.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Views\AuthView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Views\CallRequestView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Views\CallWindowView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

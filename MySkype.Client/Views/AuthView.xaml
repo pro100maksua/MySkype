@@ -1,0 +1,18 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AuthView" Height="400" Width="400">
+
+  <StackPanel Width="200" HorizontalAlignment="Center">
+
+    <ContentControl Height="200" Width="200">
+      <Image Source="resm:MySkype.Client.Assets.auth.png"/>
+    </ContentControl>
+
+    <TextBlock Text="Login" />
+    <TextBox Text="{Binding Login}" />
+    <TextBlock Text="Password" />
+    <TextBox Text="{Binding Password}" />
+    <TextBlock Foreground="Red" Text="{Binding ErrorMessage}" />
+    <Button Content="Sign in" Name="SignInButton" />
+  </StackPanel>
+</Window>

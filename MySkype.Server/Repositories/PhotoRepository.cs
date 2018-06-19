@@ -17,13 +17,6 @@ namespace MySkype.Server.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Photo>> GetAllAsync()
-        {
-            var photos = await _context.Photos.AsQueryable().ToListAsync();
-
-            return photos;
-        }
-
         public async Task<Photo> GetAsync(Guid id)
         {
             var photo = await _context.Photos

@@ -41,18 +41,16 @@ namespace MySkype.Client.Services
             return response.Data;
         }
 
-        public async Task<byte[]> GetPhotoAsync(Guid userId)
+        public async Task<byte[]> GetPhotoAsync(Guid avatarId)
         {
-            return await Task.Run(() =>
-            {
-                var request = new RestRequest("/api/photos/{userId}/photo", Method.GET);
-                request.AddUrlSegment("userId", userId.ToString());
+                var request = new RestRequest("/api/photos/{id}", Method.GET);
+                request.AddUrlSegment("id", avatarId.ToString());
                 request.AddHeader("Authorization", "Bearer " + _token);
 
                 var file = _restClient.DownloadData(request);
 
                 return file;
-            });
+            
         }
 
         public async Task<List<User>> GetFriendsAsync()
@@ -104,13 +102,9 @@ namespace MySkype.Client.Services
             await _restClient.ExecuteTaskAsync(request);
         }
 
-        public async Task SaveCallInfoAsync(Guid callerId, TimeSpan duration)
+        public async Task SaveCallInfoAsync(Guid friendId, TimeSpan duration)
         {
-            var request = new RestRequest("/api/user/friends/{friendId}/confirmCall", Method.POST);
-            request.AddUrlSegment("friendId", callerId);
-            request.AddHeader("Authorization", "Bearer " + _token);
             var call = new Call { Duration = duration.Ticks };
-            await _restClient.ExecuteTaskAsync(request);
         }
 
         public async Task<bool> SendFriendRequestAsync(Guid targetId)
@@ -126,8 +120,8 @@ namespace MySkype.Client.Services
 
         public async Task<Photo> SetPhotoAsync(User user, string path)
         {
-            var request = new RestRequest("/api/photos/{userId}/photo", Method.POST);
-            request.AddUrlSegment("userId", user.Id.ToString());
+            var request = new RestRequest("/api/photos/{avatarId}/photo", Method.POST);
+            request.AddUrlSegment("avatarId", user.Id.ToString());
             request.AddHeader("Authorization", "Bearer " + _token);
             request.AddFile("file", path, "image / " + Path.GetExtension(path));
 

@@ -12,6 +12,7 @@
       <ColumnDefinition Width="300"/>
       <ColumnDefinition Width="700"/>
     </Grid.ColumnDefinitions>
+
     <Grid Grid.Column="0" Grid.Row="0" Height="90">
       <Grid.RowDefinitions>
         <RowDefinition Height="60"/>
@@ -52,7 +53,7 @@
                   </Ellipse.Fill>
                 </Ellipse>
 
-                <TextBlock Width="230" Height="40" FontSize="16" Text="{Binding FullName}"/>
+                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" Width="220" Height="50" FontSize="16" Text="{Binding FullName}"/>
               </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -27,10 +26,14 @@ namespace MySkype.Server.Services
             _env = env;
         }
 
-        public async Task<PhotoStream> DownloadAsync(Guid userId)
+        public async Task<Photo> GetAsync(Guid id)
         {
-            var user = await _usersRepository.GetAsync(userId);
-            var photo = await _photoRepository.GetAsync(user.AvatarId);
+            return await _photoRepository.GetAsync(id);
+        }
+
+        public async Task<PhotoFile> DownloadAsync(Guid id)
+        {
+            var photo = await _photoRepository.GetAsync(id);
 
             var folder = Path.Combine(_env.WebRootPath, "photos");
             var path = Path.Combine(folder, photo.FileName);
@@ -42,7 +45,7 @@ namespace MySkype.Server.Services
             }
 
             memoryStream.Position = 0;
-            var photoStream = new PhotoStream
+            var photoStream = new PhotoFile
             {
                 MemoryStream = memoryStream,
                 ContentType = "image/" + Path.GetExtension(photo.FileName)
@@ -57,16 +60,17 @@ namespace MySkype.Server.Services
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
+            
+            var photo = new Photo { Id = Guid.NewGuid()};
 
-            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            var path = Path.Combine(folder, fileName);
+            photo.FileName = photo.Id + Path.GetExtension(file.FileName);
+            var path = Path.Combine(folder, photo.FileName);
 
             using (var stream = new FileStream(path, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            var photo = new Photo { Id = Guid.NewGuid(), FileName = fileName };
             await _photoRepository.AddAsync(photo);
             await _usersRepository.SetUserPhotoAsync(userId, photo.Id);
 
@@ -80,13 +84,13 @@ namespace MySkype.Server.Services
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
-
-            var fileName = Guid.NewGuid() + ".png";
-            var path = Path.Combine(folder, fileName);
+            
+            var photo = new Photo { Id = Guid.NewGuid()};
+            photo.FileName = photo.Id + ".png";
+            var path = Path.Combine(folder, photo.FileName);
 
             bitmap.Save(path, ImageFormat.Png);
 
-            var photo = new Photo { Id = Guid.NewGuid(), FileName = fileName };
             await _photoRepository.AddAsync(photo);
 
             return photo.Id;

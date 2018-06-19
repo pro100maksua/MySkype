@@ -13,10 +13,9 @@ namespace MySkype.Client.Views
         private CallWindowViewModel _viewModel;
         private Button _stopCallButton;
 
-
-        public CallWindowView(User friend, WebSocketClient webSocketClient, RestSharpClient restClient, bool SentRequest)
+        public CallWindowView(User friend, WebSocketClient webSocketClient, RestSharpClient restClient, bool sentRequest)
         {
-            _viewModel = new CallWindowViewModel(friend, webSocketClient, restClient);
+            _viewModel = new CallWindowViewModel(friend, webSocketClient, restClient, sentRequest);
             DataContext = _viewModel;
 
             InitializeComponent();
@@ -31,7 +30,7 @@ namespace MySkype.Client.Views
 
             _stopCallButton.Click += (sender, args) =>
             {
-                _viewModel.FinishCall();
+                _viewModel.StopCallAsync();
                 Close();
             };
         }

@@ -4,13 +4,12 @@
   <StackPanel Grid.Row="1" Background="DarkSlateGray">
     <Ellipse Margin="0,10" Height="100" Width="100" HorizontalAlignment="Center">
       <Ellipse.Fill>
-        <ImageBrush Source="{Binding Caller.Avatar.Bitmap}"/>
+        <ImageBrush Source="{Binding Friend.Avatar.Bitmap}"/>
       </Ellipse.Fill>
     </Ellipse>
 
-    <TextBlock HorizontalAlignment="Center"  FontSize="24" Text="{Binding Caller.FullName}"/>
-    <TextBlock HorizontalAlignment="Center"  Text="{Binding Duration}"/>
-    <TextBlock HorizontalAlignment="Center"  Text="{Binding Hello}"/>
+    <TextBlock HorizontalAlignment="Center"  FontSize="24" Text="{Binding Friend.FullName}"/>
+    <TextBlock IsVisible="{Binding Started}" HorizontalAlignment="Center"  Text="{Binding Duration}"/>
     
     <StackPanel Margin="0,20" HorizontalAlignment="Center" Orientation="Horizontal">
       <Button Name="ToggleMuteButton" Margin="10,10,10,10" Width="40" Height="40">

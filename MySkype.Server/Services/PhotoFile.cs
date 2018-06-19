@@ -2,7 +2,7 @@
 
 namespace MySkype.Server.Services
 {
-    public class PhotoStream
+    public class PhotoFile
     {
         public MemoryStream MemoryStream { get; set; }
 

@@ -94,15 +94,15 @@ namespace MySkype.Server.Services
         {
             var user = await _usersRepository.GetAsync(id);
 
-            var userResponseDto = _mapper.Map<User, ResponseUserDto>(user);
-            userResponseDto.Avatar = await _photoRepository.GetAsync(user.AvatarId);
+            var dto = _mapper.Map<User, ResponseUserDto>(user);
+            dto.Avatar = await _photoRepository.GetAsync(user.AvatarId);
 
-            return userResponseDto;
+            return dto;
         }
 
-        public async Task<User> PostAsync(RequestUserDto requestUserDto)
+        public async Task<User> PostAsync(RequestUserDto dto)
         {
-            var user = _mapper.Map<RequestUserDto, User>(requestUserDto);
+            var user = _mapper.Map<RequestUserDto, User>(dto);
 
             var photoId = await _photoService.CreateDefaultPhotoAsync(user.FirstName, user.LastName);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using MySkype.Client.Models;
 using MySkype.Client.Services;
@@ -8,28 +9,36 @@ namespace MySkype.Client.ViewModels
 {
     class CallWindowViewModel : ViewModelBase
     {
-        private readonly WebSocketClient _webSocketClient;
         private readonly RestSharpClient _restClient;
         private CallService _callService;
 
-        private DispatcherTimer _timer;
+        private DispatcherTimer _timer = new DispatcherTimer( );
         private TimeSpan _duration = TimeSpan.FromSeconds(0);
         
-        public User Caller { get; set; }
+        public bool Started { get; set; }
+        public User Friend { get; set; }
         public TimeSpan Duration
         {
             get => _duration;
             set => this.RaiseAndSetIfChanged(ref _duration, value);
         }
-
-        public CallWindowViewModel(User caller, WebSocketClient webSocketClient, RestSharpClient restClient)
+        
+        public CallWindowViewModel(User friend, WebSocketClient webSocketClient, RestSharpClient restClient,bool started)
         {
-            Caller = caller;
-            _webSocketClient = webSocketClient;
+            Friend = friend;
+            Started = started;
+            
             _restClient = restClient;
-            _callService = new CallService(_webSocketClient);
+            _callService = new CallService(webSocketClient);
 
+            if (Started == false)
+            {
+                StartCallAsync();
+            }
+        }
 
+        public async Task StartCallAsync()
+        {
             _timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal,
                 delegate
                 {
@@ -37,13 +46,17 @@ namespace MySkype.Client.ViewModels
                 });
 
             _timer.Start();
+
+            //await _callService.StartCallAsync();
         }
 
-        public async void FinishCall()
+        public async void StopCallAsync()
         {
-            _timer.Stop();
+            if (_timer.IsEnabled)
+                _timer.Stop();
 
-            await _restClient.SaveCallInfoAsync(Caller.Id, Duration);
+            await _restClient.SaveCallInfoAsync(Friend.Id, Duration);
+            //await _callService.StopCallAsync();
         }
     }
 }

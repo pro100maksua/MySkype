@@ -101,21 +101,16 @@ namespace MySkype.Client.ViewModels
 
         private async Task GetPhotoAsync(User user)
         {
-            var file = await _restClient.GetPhotoAsync(user.Id);
-            string path = string.Empty;
+            var file = await _restClient.GetPhotoAsync(user.Avatar.Id);
 
             const string folder = "photos";
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
-            if (!user.Avatar.FileName.Contains(folder))
-            {
-                path = Path.Combine(folder, user.Avatar.FileName);
-            }
-            else
-            {
-                path = user.Avatar.FileName;
-            }
+
+            var path = !user.Avatar.FileName.Contains(folder)
+                ? Path.Combine(folder, user.Avatar.FileName)
+                : user.Avatar.FileName;
             user.Avatar.FileName = path;
             file.SaveAs(path);
 
@@ -283,8 +278,7 @@ namespace MySkype.Client.ViewModels
 
         private async void StartCallAsync(object sender, MyEventArgs e)
         {
-            var caller = await _restClient.GetUserAsync(e.SenderId);
-            await GetPhotoAsync(caller);
+            var caller = Contacts.FirstOrDefault(c => c.Id == e.SenderId);
 
             await ShowCallWindowAsync(caller, false);
         }

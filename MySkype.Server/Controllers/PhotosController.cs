@@ -7,7 +7,7 @@ using MySkype.Server.Services;
 
 namespace MySkype.Server.Controllers
 {
-    [Route("api/users")]
+    [Route("api/photos/")]
     [Authorize]
     [ApiController]
     public class PhotosController : ControllerBase
@@ -19,15 +19,15 @@ namespace MySkype.Server.Controllers
             _photoService = photoService;
         }
         
-        [HttpGet("{userId}/photo")]
-        public async Task<IActionResult> DownloadAsync(Guid userId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> DownloadAsync(Guid id)
         {
-            var photoStream = await _photoService.DownloadAsync(userId);
+            var file = await _photoService.DownloadAsync(id);
 
-            return File(photoStream.MemoryStream, photoStream.ContentType);
+            return File(file.MemoryStream, file.ContentType);
         }
 
-        [HttpPost("{userId}/photo")]
+        [HttpPost("{userId}")]
         public async Task<IActionResult> UploadAsync(Guid userId, IFormFile file)
         {
             var photo = await _photoService.UploadAsync(userId, file);

@@ -12,7 +12,7 @@ namespace MySkype.Client.Services
             _webSocketClient = webSocketClient;
         }
 
-        public async Task StartSendingBytesAsync(Guid targetId)
+        public async Task StartCallAsync(Guid targetId)
         {
             // NAudio ??
         }

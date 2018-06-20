@@ -96,7 +96,6 @@ namespace MySkype.Client.ViewModels
 
             _notificationService.FriendRequestReceived += ReceiveFriendRequestAsync;
             _notificationService.CallRequestReceived += ReceiveCallAsync;
-            _notificationService.CallAccepted += StartCallAsync;
         }
 
         private async Task GetPhotoAsync(User user)
@@ -202,7 +201,7 @@ namespace MySkype.Client.ViewModels
             var fileNames = await dialog.ShowAsync();
             if (fileNames != null)
             {
-                var photo = await _restClient.SetPhotoAsync(User, fileNames.FirstOrDefault());
+                await _restClient.SetPhotoAsync(User, fileNames.FirstOrDefault());
 
                 await GetPhotoAsync(User);
 
@@ -253,16 +252,16 @@ namespace MySkype.Client.ViewModels
 
                 if (accepted)
                 {
-                    await ShowCallWindowAsync(caller, false);
+                    await ShowCallWindowAsync(caller, started: true);
                 }
             });
 
 
         }
 
-        private async Task ShowCallWindowAsync(User friend, bool sentRequest)
+        private async Task ShowCallWindowAsync(User friend, bool started)
         {
-            var callView = new CallWindowView(friend, _webSocketClient, _restClient, sentRequest);
+            var callView = new CallWindowView(friend, _webSocketClient, _restClient, _notificationService, started);
 
             await callView.ShowDialog();
         }
@@ -276,13 +275,6 @@ namespace MySkype.Client.ViewModels
             IsLargeUserFriend = possibleFriend != null;
         }
 
-        private async void StartCallAsync(object sender, MyEventArgs e)
-        {
-            var caller = Contacts.FirstOrDefault(c => c.Id == e.SenderId);
-
-            await ShowCallWindowAsync(caller, false);
-        }
-
         public async Task SendVideoCallRequestAsync()
         {
 
@@ -292,7 +284,10 @@ namespace MySkype.Client.ViewModels
         {
             await _restClient.SendAudioCallRequestAsync(LargeUser.Id);
 
-            await ShowCallWindowAsync(LargeUser, true);
+            await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await ShowCallWindowAsync(LargeUser, started: false);
+            });
         }
     }
 }

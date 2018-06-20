@@ -49,7 +49,6 @@ namespace MySkype.Server.Middleware
                 switch (result.MessageType)
                 {
                     case WebSocketMessageType.Text:
-                        await _webSocketManager.ReceiveTextAsync(result, buffer);
                         break;
                     case WebSocketMessageType.Binary:
                         await _webSocketManager.ReceiveBytesAsync(_id, result, buffer);

@@ -8,8 +8,7 @@ namespace MySkype.Server.WebSocketManagers
     public interface IWebSocketManager
     {
         void Add(Guid id, WebSocket socket);
-        Task ReceiveBytesAsync(Guid senderSocketId, WebSocketReceiveResult result, byte[] buffer);
-        Task ReceiveTextAsync(WebSocketReceiveResult result, byte[] buffer);
+        Task ReceiveBytesAsync(Guid senderId, WebSocketReceiveResult result, byte[] buffer);
         Task RemoveAsync(Guid id);
         Task SendAsync(Guid senderId, Guid targetId, MessageType messageType);
     }

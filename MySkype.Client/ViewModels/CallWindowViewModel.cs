@@ -12,42 +12,55 @@ namespace MySkype.Client.ViewModels
         private readonly RestSharpClient _restClient;
         private CallService _callService;
 
-        private DispatcherTimer _timer = new DispatcherTimer( );
-        private TimeSpan _duration = TimeSpan.FromSeconds(0);
-        
-        public bool Started { get; set; }
+        private DispatcherTimer _timer;
+        private TimeSpan _duration = TimeSpan.Zero;
+        private bool _started;
+
+        public bool Started
+        {
+            get => _started;
+            set => this.RaiseAndSetIfChanged(ref _started, value);
+        }
         public User Friend { get; set; }
         public TimeSpan Duration
         {
             get => _duration;
             set => this.RaiseAndSetIfChanged(ref _duration, value);
         }
-        
-        public CallWindowViewModel(User friend, WebSocketClient webSocketClient, RestSharpClient restClient,bool started)
+
+        public CallWindowViewModel(User friend, WebSocketClient webSocketClient, RestSharpClient restClient, NotificationService notificationService, bool started)
         {
             Friend = friend;
             Started = started;
-            
+
             _restClient = restClient;
             _callService = new CallService(webSocketClient);
 
-            if (Started == false)
+            _timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal,
+                (sender, e) =>
+                {
+                    Duration = Duration.Add(TimeSpan.FromSeconds(1));
+                });
+
+            if (Started)
             {
                 StartCallAsync();
+            }
+            else
+            {
+                notificationService.CallAccepted += (sender, e) =>
+                {
+                    Started = true;
+                    StartCallAsync();
+                };
             }
         }
 
         public async Task StartCallAsync()
         {
-            _timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal,
-                delegate
-                {
-                    Duration = Duration.Add(TimeSpan.FromSeconds(1));
-                });
-
             _timer.Start();
 
-            //await _callService.StartCallAsync();
+            await _callService.StartCallAsync(Friend.Id);
         }
 
         public async void StopCallAsync()

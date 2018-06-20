@@ -10,7 +10,7 @@
 
     <TextBlock HorizontalAlignment="Center"  FontSize="24" Text="{Binding Friend.FullName}"/>
     <TextBlock IsVisible="{Binding Started}" HorizontalAlignment="Center"  Text="{Binding Duration}"/>
-    
+
     <StackPanel Margin="0,20" HorizontalAlignment="Center" Orientation="Horizontal">
       <Button Name="ToggleMuteButton" Margin="10,10,10,10" Width="40" Height="40">
         <Button.Template>
@@ -22,7 +22,7 @@
             </Ellipse>
           </ControlTemplate>
         </Button.Template>
-      </Button>     
+      </Button>
       <Button Name="ToggleMicroButton" Margin="10,10,10,10" Width="40" Height="40">
         <Button.Template>
           <ControlTemplate>
@@ -33,7 +33,7 @@
             </Ellipse>
           </ControlTemplate>
         </Button.Template>
-      </Button>     
+      </Button>
       <Button Name="ToggleVideoButton" Margin="10,10,10,10" Width="40" Height="40">
         <Button.Template>
           <ControlTemplate>
@@ -44,7 +44,7 @@
             </Ellipse>
           </ControlTemplate>
         </Button.Template>
-      </Button>     
+      </Button>
       <Button Name="StopCallButton" Margin="10,10,10,10" Width="40" Height="40">
         <Button.Template>
           <ControlTemplate>

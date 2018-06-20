@@ -1,18 +1,16 @@
-﻿using System.Threading.Tasks;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using MySkype.Client.Models;
 using MySkype.Client.Services;
-using MySkype.Client.ViewModels;
 
 namespace MySkype.Client.Views
 {
     public class CallRequestView : Window
     {
         private readonly User _caller;
-        private RestSharpClient _restClient;
+        private readonly RestSharpClient _restClient;
         private Button _rejectCallButton;
         private Button _acceptAudioCallButton;
         private Button _acceptVideoCallButton;

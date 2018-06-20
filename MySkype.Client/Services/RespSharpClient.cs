@@ -95,8 +95,8 @@ namespace MySkype.Client.Services
 
         public async Task ConfirmAudioCallAsync(Guid callerId)
         {
-            var request = new RestRequest("/api/user/friends/{friendId}/confirmCall", Method.POST);
-            request.AddUrlSegment("friendId", callerId);
+            var request = new RestRequest("/api/user/friends/{callerId}/confirmCall", Method.POST);
+            request.AddUrlSegment("callerId", callerId);
             request.AddHeader("Authorization", "Bearer " + _token);
 
             await _restClient.ExecuteTaskAsync(request);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.AspNetCore.Hosting;
 using MySkype.Server.Dto;
 using MySkype.Server.Interfaces;
 using MySkype.Server.Models;

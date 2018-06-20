@@ -1,5 +1,4 @@
-﻿using System;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using MySkype.Client.Models;
@@ -13,13 +12,12 @@ namespace MySkype.Client.Views
         private CallWindowViewModel _viewModel;
         private Button _stopCallButton;
 
-        public CallWindowView(User friend, WebSocketClient webSocketClient, RestSharpClient restClient, bool sentRequest)
+        public CallWindowView(User friend, WebSocketClient webSocketClient, RestSharpClient restClient, NotificationService notificationService, bool staarted)
         {
-            _viewModel = new CallWindowViewModel(friend, webSocketClient, restClient, sentRequest);
+            _viewModel = new CallWindowViewModel(friend, webSocketClient, restClient, notificationService, staarted);
             DataContext = _viewModel;
 
             InitializeComponent();
-
             this.AttachDevTools();
         }
 

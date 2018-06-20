@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MySkype.Server.Models;
-using MySkype.Server.WebSocketModels;
 using Newtonsoft.Json;
 
 namespace MySkype.Server.WebSocketManagers
@@ -28,14 +27,9 @@ namespace MySkype.Server.WebSocketManagers
             await _connectionManager.RemoveSocketAsync(id);
         }
 
-        public async Task ReceiveTextAsync(WebSocketReceiveResult result, byte[] buffer)
+        public async Task ReceiveBytesAsync(Guid senderSocketId, WebSocketReceiveResult result, byte[] buffer)
         {
-
-            var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-            var message = JsonConvert.DeserializeObject<WebSocketRequest>(json);
-
-            //await SendFriendRequestAsync(socket, message);
+            await SendBytesAsync(senderSocketId, result, buffer);
         }
         public async Task SendAsync(Guid senderId, Guid targetId, MessageType messageType)
         {
@@ -55,12 +49,7 @@ namespace MySkype.Server.WebSocketManagers
                     WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
-
-        public async Task ReceiveBytesAsync(Guid senderSocketId, WebSocketReceiveResult result, byte[] buffer)
-        {
-            await SendBytesAsync(senderSocketId, result, buffer);
-        }
-
+        
         private async Task SendBytesAsync(Guid targetSocketId, WebSocketReceiveResult result, byte[] bytes)
         {
             var targetSocket = _connectionManager.Get(targetSocketId);

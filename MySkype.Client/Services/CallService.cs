@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MySkype.Client.Services
@@ -14,7 +15,7 @@ namespace MySkype.Client.Services
 
         public async Task StartCallAsync(Guid targetId)
         {
-            // NAudio ??
+            
         }
     }
 }

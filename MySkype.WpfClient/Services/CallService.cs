@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace MySkype.Client.Services
+namespace MySkype.WpfClient.Services
 {
     class CallService
     {

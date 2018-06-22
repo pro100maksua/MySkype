@@ -1,0 +1,184 @@
+﻿<Window x:Class="MySkype.WpfClient.Views.MainWindowView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MySkype.WpfClient.ValueConverters"
+        mc:Ignorable="d"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="MySkype" ResizeMode="NoResize" Height="620" Width="1000">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+        <local:ReverseVisilibityConverter x:Key="ReverseVisibilityConverter"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="90"/>
+            <RowDefinition Height="530"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="700"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Grid.Row="0" Height="90">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+
+            <ContentControl Grid.Row="0" Grid.ColumnSpan="3">
+                <StackPanel Orientation="Horizontal">
+                    <Button Width="60" Height="60" Command="{Binding ChoosePhotoCommand}">
+                        <Button.Template>
+                            <ControlTemplate>
+                                <Ellipse Height="60" Width="60">
+                                    <Ellipse.Fill>
+                                        <ImageBrush  ImageSource="{Binding Path=User.Avatar.Bitmap}"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+
+                    <TextBlock VerticalAlignment="Center" FontSize="24" Text="{Binding User.FullName}"/>
+                </StackPanel>
+            </ContentControl>
+
+            <TextBox Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Path=SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="SearchTextBox"/>
+        </Grid>
+
+        <TabControl Grid.Column="0" Grid.Row="1" Height="530">
+            <TabItem Header="Contacts">
+                <ListBox ItemsSource="{Binding Contacts}" Name="Contacts">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Height="60" Width="60">
+                                    <Ellipse.Fill>
+                                        <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=Avatar.Bitmap}"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+
+                                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" Width="220" Height="50" FontSize="16" Text="{Binding Path=FullName}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+
+            <TabItem Header="Calls">
+                <ListBox ItemsSource="{Binding Calls}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="200" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="100"/>
+                                </Grid.RowDefinitions>
+
+                                <Ellipse Grid.Column="0" Height="100" Width="100">
+                                    <Ellipse.Fill>
+                                        <ImageBrush  Stretch="Fill" ImageSource="{Binding Avatar.Bitmap}"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding FullName}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+
+            <TabItem Header="Notifications" Name="test">
+                <ListBox ItemsSource="{Binding Notifications}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Width="230" Height="40" FontSize="24" Text="{Binding SenderName}"/>
+                                <Button Width="40" Height="40"
+                        Command="{Binding DataContext.AddFriendCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
+                        CommandParameter="{Binding SenderId}">
+                                    <Button.Template>
+                                        <ControlTemplate>
+                                            <Image Source="/Assets/add.png" Stretch="Fill"/>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+        </TabControl>
+
+        <ListBox Name="SearchResult" ItemsSource="{Binding SearchResult}" Grid.Column="0" Grid.Row="1" Height="530" 
+                 Visibility="{Binding Path=IsSearchBoxEmpty,Converter={StaticResource ReverseVisibilityConverter}}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Height="60" Width="60">
+                            <Ellipse.Fill>
+                                <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=Avatar.Bitmap}"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" Text="{Binding FullName}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Column="1" Grid.RowSpan="2"
+                    Visibility="{Binding Path=IsLargeUserSet, Converter={StaticResource ReverseVisibilityConverter}}">
+            <TextBlock HorizontalAlignment="Center" Text="{Binding User.FirstName}" />
+            <Ellipse Height="100" Width="100">
+                <Ellipse.Fill>
+                    <ImageBrush  Stretch="Fill" ImageSource="{Binding User.Avatar.Bitmap}"/>
+                </Ellipse.Fill>
+            </Ellipse>
+        </StackPanel>
+
+        <Grid Visibility="{Binding Path=IsLargeUserSet,Converter={StaticResource VisibilityConverter}}" Name="Large" Grid.Column="1" Grid.RowSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="70" />
+                <RowDefinition Height="550"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding LargeUser.FullName}" />
+
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" >
+                <Button Visibility="{Binding IsLargeUserFriend, Converter={StaticResource ReverseVisibilityConverter}}" HorizontalAlignment="Left" Width="40" Height="40"
+                          Command="{Binding SendFriendRequestCommand}" Margin="0,0,20,0" >
+                    <Button.Template>
+                        <ControlTemplate>
+                            <Image Source="/Assets/add.png" Stretch="Fill"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button Visibility="{Binding IsLargeUserFriend, Converter={StaticResource VisibilityConverter}}" HorizontalAlignment="Right" Width="40" Height="40"
+                    Command="{Binding Path=SendAudioCallRequestCommand}" Margin="0,0,20,0">
+                    <Button.Template>
+                        <ControlTemplate>
+                            <Image Source="/Assets/acall.png" Stretch="Fill"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button Visibility="{Binding IsLargeUserFriend, Converter={StaticResource VisibilityConverter}}" HorizontalAlignment="Right" Width="55" Height="55"
+                      Command="{Binding SendVideoCallRequest}" Margin="0,0,20,0">
+                    <Button.Template>
+                        <ControlTemplate>
+                            <Image Source="/Assets/vcall.png" Stretch="Fill"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

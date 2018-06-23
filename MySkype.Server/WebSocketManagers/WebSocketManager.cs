@@ -49,7 +49,18 @@ namespace MySkype.Server.WebSocketManagers
                     WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
-        
+
+        public async Task SendDataAsync(Guid senderId, Guid targetId, byte[] data)
+        {
+            var targetSocket = _connectionManager.Get(senderId);
+
+            if (targetSocket != null)
+            {
+                await targetSocket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true,
+                    CancellationToken.None);
+            }
+        }
+
         private async Task SendBytesAsync(Guid targetSocketId, WebSocketReceiveResult result, byte[] bytes)
         {
             var targetSocket = _connectionManager.Get(targetSocketId);

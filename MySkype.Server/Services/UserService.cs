@@ -43,7 +43,28 @@ namespace MySkype.Server.Services
 
             return userDtos;
         }
+        public async Task<ResponseUserDto> GetAsync(Guid id)
+        {
+            var user = await _usersRepository.GetAsync(id);
 
+            var dto = _mapper.Map<User, ResponseUserDto>(user);
+            dto.Avatar = await _photoRepository.GetAsync(user.AvatarId);
+
+            return dto;
+        }
+        public async Task<User> PostAsync(RequestUserDto dto)
+        {
+            var user = _mapper.Map<RequestUserDto, User>(dto);
+
+            var photoId = await _photoService.CreateDefaultPhotoAsync(user.FirstName, user.LastName);
+
+            user.Id = Guid.NewGuid();
+            user.AvatarId = photoId;
+
+            await _usersRepository.AddAsync(user);
+
+            return user;
+        }
         public async Task<IEnumerable<ResponseUserDto>> GetFriendsAsync(Guid id)
         {
             var user = await _usersRepository.GetAsync(id);
@@ -73,8 +94,6 @@ namespace MySkype.Server.Services
 
             return true;
         }
-
-
         public async Task<bool> ConfirmFriendRequestAsync(Guid id, Guid friendId)
         {
             var alreadyFriend = await _usersRepository.CheckIfFriendAsync(id, friendId);
@@ -88,39 +107,19 @@ namespace MySkype.Server.Services
             return true;
 
         }
-
-        public async Task<ResponseUserDto> GetAsync(Guid id)
-        {
-            var user = await _usersRepository.GetAsync(id);
-
-            var dto = _mapper.Map<User, ResponseUserDto>(user);
-            dto.Avatar = await _photoRepository.GetAsync(user.AvatarId);
-
-            return dto;
-        }
-
-        public async Task<User> PostAsync(RequestUserDto dto)
-        {
-            var user = _mapper.Map<RequestUserDto, User>(dto);
-
-            var photoId = await _photoService.CreateDefaultPhotoAsync(user.FirstName, user.LastName);
-
-            user.Id = Guid.NewGuid();
-            user.AvatarId = photoId;
-
-            await _usersRepository.AddAsync(user);
-
-            return user;
-        }
-
+        
         public async Task SendCallRequestAsync(Guid id, Guid friendId)
         {
             await _webSocketManager.SendAsync(id, friendId, MessageType.CallRequest);
         }
-
         public async Task ConfirmCallAsync(Guid id, Guid friendId)
         {
             await _webSocketManager.SendAsync(id, friendId, MessageType.CallConfirmation);
+        }
+
+        public async Task SendDataAsync(Guid id, Guid friendId, byte[] data)
+        {
+            await _webSocketManager.SendDataAsync(id, friendId, data);
         }
     }
 }

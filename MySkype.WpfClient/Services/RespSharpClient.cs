@@ -84,6 +84,16 @@ namespace MySkype.WpfClient.Services
             return response.StatusCode == HttpStatusCode.OK ? response.Data : null;
         }
 
+        public async Task SendDataAsync(Guid friendId, byte[] data)
+        {
+            var request = new RestRequest("/api/user/friends/{friendId}/data", Method.POST);
+            request.AddUrlSegment("friendId", friendId);
+            request.AddHeader("Authorization", "Bearer " + _token);
+            request.AddJsonBody(data);
+
+            await _restClient.ExecuteTaskAsync(request);
+        }
+
         public async Task SendAudioCallRequestAsync(Guid targetId)
         {
             var request = new RestRequest("/api/user/friends/{friendId}/call", Method.POST);

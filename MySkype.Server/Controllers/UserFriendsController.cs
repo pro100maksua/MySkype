@@ -67,5 +67,15 @@ namespace MySkype.Server.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("{friendId}/data")]
+        public async Task<IActionResult> SendDataAsync([FromBody] byte[] data, Guid friendId)
+        {
+            var id = new Guid(User.FindFirst("sid").Value);
+
+            await _userService.SendDataAsync(id, friendId, data);
+
+            return Ok();
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MySkype.WpfClient.Models;
 using Newtonsoft.Json;
@@ -11,6 +12,12 @@ namespace MySkype.WpfClient.Services
         private readonly NotificationService _notificationService;
         private readonly WebSocket _client;
 
+        public event EventHandler<DataReceivedEventArgs> DataReceived
+        {
+            add => _client.DataReceived += value;
+            remove => _client.DataReceived -= value;
+        }
+
         public WebSocketClient(NotificationService notificationService, string token)
         {
             _notificationService = notificationService;
@@ -22,9 +29,7 @@ namespace MySkype.WpfClient.Services
                 });
 
             _client.MessageReceived += OnMessageReceived;
-
         }
-
 
         public void Start()
         {
@@ -33,13 +38,9 @@ namespace MySkype.WpfClient.Services
 
         private async void OnMessageReceived(object sender, MessageReceivedEventArgs e)
         {
-
-
             await Task.Run(() =>
             {
-                var json = e.Message;
-
-                var message = JsonConvert.DeserializeObject<Message>(json);
+                var message = JsonConvert.DeserializeObject<Message>(e.Message);
 
                 switch (message.MessageType)
                 {
@@ -55,58 +56,5 @@ namespace MySkype.WpfClient.Services
                 }
             });
         }
-
-
-        //public async Task ReceiveAsync()
-        //{
-        //    var buffer = new byte[4 * 1024];
-
-        //    while (_client.State == WebSocketState.Open)
-        //    {
-        //        var result = await _client.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-        //        switch (result.MessageType)
-        //        {
-        //            case WebSocketMessageType.Text:
-        //                await ReceiveMessageAsync(buffer, result);
-        //                break;
-        //            case WebSocketMessageType.Binary:
-        //                await ReceiveBytesAsync(buffer, result);
-        //                break;
-        //            case WebSocketMessageType.Close:
-        //                await _client.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty,
-        //                    CancellationToken.None);
-        //                break;
-        //        }
-        //    }
-        //}
-
-        //private async Task ReceiveBytesAsync(byte[] buffer, WebSocketReceiveResult result)
-        //{
-
-        //}
-
-        //private async Task ReceiveMessageAsync(byte[] buffer, WebSocketReceiveResult result)
-        //{
-        //    await Task.Run(() =>
-        //    {
-        //        var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-        //        var message = JsonConvert.DeserializeObject<Message>(json);
-
-        //        switch (message.MessageType)
-        //        {
-        //            case MessageType.FriendRequest:
-        //                _notificationService.NotifyFriendRequest(message.SenderId);
-        //                break;
-        //            case MessageType.CallRequest:
-        //                _notificationService.NotifyCallRequest(message.SenderId);
-        //                break;
-        //            case MessageType.CallConfirmation:
-        //                _notificationService.NotifyCallAccepted(message.SenderId);
-        //                break;
-        //        }
-        //    });
-        //}
     }
 }

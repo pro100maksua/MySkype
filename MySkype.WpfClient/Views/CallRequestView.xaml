@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MySkype.WpfClient.Views"
         mc:Ignorable="d"
+        Topmost="True"
     Title="CallRequestView" ResizeMode="NoResize" Width="220" Height="280">
 
     <StackPanel Width="200">

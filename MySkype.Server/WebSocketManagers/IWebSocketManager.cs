@@ -11,5 +11,6 @@ namespace MySkype.Server.WebSocketManagers
         Task ReceiveBytesAsync(Guid senderId, WebSocketReceiveResult result, byte[] buffer);
         Task RemoveAsync(Guid id);
         Task SendAsync(Guid senderId, Guid targetId, MessageType messageType);
+        Task SendDataAsync(Guid id, Guid friendId, byte[] data);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using MySkype.WpfClient.Models;
 using MySkype.WpfClient.Services;
@@ -9,10 +8,10 @@ namespace MySkype.WpfClient.ViewModels
 {
     class CallWindowViewModel : ViewModelBase
     {
-        private readonly RestSharpClient _restClient;
-        private CallService _callService;
+        private readonly NotificationService _notificationService;
+        private readonly CallService _callService;
 
-        private DispatcherTimer _timer;
+        private readonly DispatcherTimer _timer;
         private TimeSpan _duration = TimeSpan.Zero;
         private bool _started;
 
@@ -30,44 +29,47 @@ namespace MySkype.WpfClient.ViewModels
 
         public CallWindowViewModel(User friend, WebSocketClient webSocketClient, RestSharpClient restClient, NotificationService notificationService, bool started)
         {
+            _notificationService = notificationService;
             Friend = friend;
             Started = started;
 
-            _restClient = restClient;
-            _callService = new CallService(webSocketClient);
 
-            _timer = new DispatcherTimer();
-            _timer.Interval = new TimeSpan(0, 0, 1);
+            _callService = new CallService(webSocketClient, restClient, Friend.Id);
+
+            _timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 1) };
             _timer.Tick += (sender, e) => { Duration = Duration.Add(TimeSpan.FromSeconds(1)); };
 
             if (Started)
             {
-                StartCallAsync();
+                StartCall();
             }
             else
             {
-                notificationService.CallAccepted += (sender, e) =>
-                {
-                    Started = true;
-                    StartCallAsync();
-                };
+                _notificationService.CallAccepted += StartCall;
             }
         }
 
-        public async Task StartCallAsync()
+        private void StartCall(object sender, MyEventArgs e)
+        {
+            _notificationService.CallAccepted -= StartCall;
+
+            Started = true;
+            StartCall();
+        }
+
+        public void StartCall()
         {
             _timer.Start();
 
-            await _callService.StartCallAsync(Friend.Id);
+            _callService.StartCall();
         }
 
-        public async void StopCallAsync()
+        public void StopCall()
         {
             if (_timer.IsEnabled)
                 _timer.Stop();
 
-            await _restClient.SaveCallInfoAsync(Friend.Id, Duration);
-            //await _callService.StopCallAsync();
+            _callService.StopCall();
         }
     }
 }

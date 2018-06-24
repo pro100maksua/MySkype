@@ -27,7 +27,7 @@ namespace MySkype.WpfClient.ViewModels
 
         private ObservableCollection<User> _contacts = new ObservableCollection<User>();
         private ObservableCollection<User> _searchResult = new ObservableCollection<User>();
-        private ObservableCollection<Call> _calls = new ObservableCollection<Call>();
+        private ObservableCollection<CallRepresentation> _calls = new ObservableCollection<CallRepresentation>();
         private ObservableCollection<Message> _notifications = new ObservableCollection<Message>();
         private User _user = new User();
         private User _largeUser = new User();
@@ -35,7 +35,6 @@ namespace MySkype.WpfClient.ViewModels
         private string _searchQuery;
         private bool _isSearchBoxEmpty = true;
         private bool _isLargeUserSet;
-        private SynchronizationContext _syncContext;
 
         public ObservableCollection<User> Contacts
         {
@@ -47,7 +46,7 @@ namespace MySkype.WpfClient.ViewModels
             get => _searchResult;
             set => this.RaiseAndSetIfChanged(ref _searchResult, value);
         }
-        public ObservableCollection<Call> Calls
+        public ObservableCollection<CallRepresentation> Calls
         {
             get => _calls;
             set => this.RaiseAndSetIfChanged(ref _calls, value);
@@ -108,19 +107,16 @@ namespace MySkype.WpfClient.ViewModels
 
         public MainWindowViewModel()
         {
-            _syncContext = SynchronizationContext.Current;
-
-
             _notificationService = new NotificationService();
 
             _notificationService.FriendRequestReceived += ReceiveFriendRequestAsync;
             _notificationService.CallRequestReceived += ReceiveCallAsync;
 
-            ChoosePhotoCommand = new AsyncCommand(ChoosePhotoAsync); // ReactiveCommand.Create(async () => await ChoosePhotoAsync());
-            AddFriendCommand = new AsyncCommand((senderId) => AddFriendAsync((Guid)senderId)); // ReactiveCommand.CreateFromTask(async (Guid senderId) => await AddFriendAsync(senderId));
-            SendFriendRequestCommand = new AsyncCommand(SendFriendRequestAsync);//ReactiveCommand.CreateFromTask(async () => await SendFriendRequestAsync());
-            SendAudioCallRequestCommand =new AsyncCommand(SendAudioCallRequestAsync); //ReactiveCommand.CreateFromTask(async () => await SendAudioCallRequestAsync());
-            SendVideoCallRequestCommand =new AsyncCommand(SendVideoCallRequestAsync); //ReactiveCommand.CreateFromTask(async () => await SendVideoCallRequestAsync());
+            ChoosePhotoCommand = new AsyncCommand(ChoosePhotoAsync);
+            AddFriendCommand = new AsyncCommand((senderId) => AddFriendAsync((Guid)senderId));
+            SendFriendRequestCommand = new AsyncCommand(SendFriendRequestAsync);
+            SendAudioCallRequestCommand = new AsyncCommand(SendAudioCallRequestAsync);
+            SendVideoCallRequestCommand = new AsyncCommand(SendVideoCallRequestAsync);
 
         }
 
@@ -185,9 +181,24 @@ namespace MySkype.WpfClient.ViewModels
             User = user;
 
             await GetFriendsAsync();
+            await GetUserCallsAsync();
             await GetFriendRequestsAsync();
 
+
             _webSocketClient.Start();
+        }
+
+        private async Task GetUserCallsAsync()
+        {
+            var calls = await _restClient.GetUserCallsAsync();
+
+            var callRepr = calls.Select(c => new CallRepresentation
+            {
+                Duration = new TimeSpan(c.Duration),
+                StartTime = new DateTime(c.StartTime)
+            }).ToList();
+
+            Calls = new ObservableCollection<CallRepresentation>(callRepr);
         }
 
         public async Task SearchAsync()
@@ -228,7 +239,6 @@ namespace MySkype.WpfClient.ViewModels
 
         public async Task ChoosePhotoAsync()
         {
-            //var filter = new FileDialogFilter { Extensions = new List<string> { "png" } };
             var dialog = new OpenFileDialog
             {
                 Filter = "Image files (*.png)| *.png",
@@ -278,26 +288,24 @@ namespace MySkype.WpfClient.ViewModels
         public async void ReceiveCallAsync(object sender, MyEventArgs e)
         {
             var caller = Contacts.FirstOrDefault(c => c.Id == e.SenderId);
-            bool accepted = true;
+
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
                 new Action(async () =>
                 {
-                    var callRequestWindow = new CallRequestView(caller, _restClient);
+                    var callRequestWindow = new CallRequestView(caller, _webSocketClient);
 
-                    callRequestWindow.ShowDialog();
+                    var accepted = callRequestWindow.ShowDialog();
 
-                    if (accepted)
+                    if (accepted.Value)
                     {
-                        await ShowCallWindowAsync(caller, started: true);
+                        await ShowCallWindowAsync(caller, isCaller: false);
                     }
                 }));
-
-
         }
 
-        private async Task ShowCallWindowAsync(User friend, bool started)
+        private async Task ShowCallWindowAsync(User friend, bool isCaller)
         {
-            var callView = new CallWindowView(friend, _webSocketClient, _restClient, _notificationService, started);
+            var callView = new CallWindowView(User.Id, friend, _webSocketClient, _restClient, _notificationService, isCaller);
 
             callView.ShowDialog();
         }
@@ -318,10 +326,10 @@ namespace MySkype.WpfClient.ViewModels
 
         public async Task SendAudioCallRequestAsync()
         {
-            await _restClient.SendAudioCallRequestAsync(LargeUser.Id);
+            _webSocketClient.SendMessage(LargeUser.Id, MessageType.CallRequest);
 
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
-                new Action(async () => await ShowCallWindowAsync(LargeUser, started: false)));
+                new Action(async () => await ShowCallWindowAsync(LargeUser, isCaller: true)));
         }
     }
 }

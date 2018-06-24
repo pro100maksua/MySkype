@@ -43,14 +43,14 @@ namespace MySkype.WpfClient.Services
 
         public async Task<byte[]> GetPhotoAsync(Guid avatarId)
         {
-                var request = new RestRequest("/api/photos/{id}", Method.GET);
-                request.AddUrlSegment("id", avatarId.ToString());
-                request.AddHeader("Authorization", "Bearer " + _token);
+            var request = new RestRequest("/api/photos/{id}", Method.GET);
+            request.AddUrlSegment("id", avatarId.ToString());
+            request.AddHeader("Authorization", "Bearer " + _token);
 
-                var file = _restClient.DownloadData(request);
+            var file = _restClient.DownloadData(request);
 
-                return file;
-            
+            return file;
+
         }
 
         public async Task<List<User>> GetFriendsAsync()
@@ -94,27 +94,23 @@ namespace MySkype.WpfClient.Services
             await _restClient.ExecuteTaskAsync(request);
         }
 
-        public async Task SendAudioCallRequestAsync(Guid targetId)
+        public async Task<List<Call>> GetUserCallsAsync()
         {
-            var request = new RestRequest("/api/user/friends/{friendId}/call", Method.POST);
-            request.AddUrlSegment("friendId", targetId);
+            var request = new RestRequest("/api/calls/", Method.GET);
             request.AddHeader("Authorization", "Bearer " + _token);
 
-            await _restClient.ExecuteTaskAsync(request);
+            var result = await _restClient.ExecuteTaskAsync<List<Call>>(request);
+
+            return result.Data;
         }
 
-        public async Task ConfirmAudioCallAsync(Guid callerId)
+        public async Task SaveCallInfoAsync(Call call)
         {
-            var request = new RestRequest("/api/user/friends/{callerId}/confirmCall", Method.POST);
-            request.AddUrlSegment("callerId", callerId);
+            var request = new RestRequest("/api/calls/", Method.POST);
             request.AddHeader("Authorization", "Bearer " + _token);
+            request.AddJsonBody(call);
 
             await _restClient.ExecuteTaskAsync(request);
-        }
-
-        public async Task SaveCallInfoAsync(Guid friendId, TimeSpan duration)
-        {
-            var call = new Call { Duration = duration.Ticks };
         }
 
         public async Task<bool> SendFriendRequestAsync(Guid targetId)

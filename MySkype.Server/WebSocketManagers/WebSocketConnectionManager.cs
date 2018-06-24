@@ -12,9 +12,6 @@ namespace MySkype.Server.WebSocketManagers
         private readonly ConcurrentDictionary<Guid, WebSocket> _sockets =
             new ConcurrentDictionary<Guid, WebSocket>();
 
-        private readonly ConcurrentDictionary<Guid, HashSet<Guid>> _rooms =
-            new ConcurrentDictionary<Guid, HashSet<Guid>>();
-
         public ConcurrentDictionary<Guid, WebSocket> GetAll()
         {
             return _sockets;

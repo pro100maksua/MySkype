@@ -7,10 +7,10 @@ namespace MySkype.Server.WebSocketManagers
 {
     public interface IWebSocketManager
     {
-        void Add(Guid id, WebSocket socket);
-        Task ReceiveBytesAsync(Guid senderId, WebSocketReceiveResult result, byte[] buffer);
-        Task RemoveAsync(Guid id);
-        Task SendAsync(Guid senderId, Guid targetId, MessageType messageType);
-        Task SendDataAsync(Guid id, Guid friendId, byte[] data);
+        void Add(Guid socketId, WebSocket socket);
+        Task RemoveAsync(Guid socketId);
+        Task SendMessageAsync(Message message);
+        Task SendBytesAsync(Guid targetId, byte[] data);
+        Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using MySkype.WpfClient.Models;
 using NAudio.Wave;
 using WebSocket4Net;
 
@@ -21,7 +22,7 @@ namespace MySkype.WpfClient.Services
             _friendId = friendId;
 
             _webSocketClient.DataReceived += OnDataReceived;
-
+            _bufferStream.DiscardOnBufferOverflow = true;
             _input.DataAvailable += OnDataAvailable;
 
             _output.Init(_bufferStream);
@@ -50,10 +51,10 @@ namespace MySkype.WpfClient.Services
         {
             _webSocketClient.DataReceived -= OnDataReceived;
 
-            _output.Stop();
-            _output.Dispose();
-            _input.StopRecording();
-            _input.Dispose();
+            _output?.Stop();
+            _output?.Dispose();
+            _input?.StopRecording();
+            _input?.Dispose();
 
             _input = null;
             _output = null;

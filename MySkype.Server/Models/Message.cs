@@ -6,6 +6,8 @@ namespace MySkype.Server.Models
     {
         public Guid SenderId { get; set; }
 
+        public Guid  TargetId { get; set; }
+
         public MessageType MessageType { get; set; }
     }
 }

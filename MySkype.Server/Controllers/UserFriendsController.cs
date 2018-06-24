@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MySkype.Server.Models;
 using MySkype.Server.Services;
+using MySkype.Server.WebSocketManagers;
 
 namespace MySkype.Server.Controllers
 {
@@ -12,10 +14,12 @@ namespace MySkype.Server.Controllers
     public class UserFriendsController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly IWebSocketManager _webSocketManager;
 
-        public UserFriendsController(UserService userService)
+        public UserFriendsController(UserService userService, IWebSocketManager webSocketManager)
         {
             _userService = userService;
+            _webSocketManager = webSocketManager;
         }
 
         [HttpGet]
@@ -38,26 +42,6 @@ namespace MySkype.Server.Controllers
             return Ok(result);
         }
 
-        [HttpPost("{friendId}/call")]
-        public async Task<IActionResult> SendCallRequestAsync(Guid friendId)
-        {
-            var id = new Guid(User.FindFirst("sid").Value);
-
-            await _userService.SendCallRequestAsync(id, friendId);
-
-            return Ok();
-        }
-
-        [HttpPost("{friendId}/confirmCall")]
-        public async Task<IActionResult> ConfirmCallAsync(Guid friendId)
-        {
-            var id = new Guid(User.FindFirst("sid").Value);
-
-            await _userService.ConfirmCallAsync(id, friendId);
-
-            return Ok();
-        }
-
         [HttpPut("{friendId}")]
         public async Task<IActionResult> ConfirmFriendRequestAsync(Guid friendId)
         {
@@ -69,11 +53,9 @@ namespace MySkype.Server.Controllers
         }
 
         [HttpPost("{friendId}/data")]
-        public async Task<IActionResult> SendDataAsync([FromBody] byte[] data, Guid friendId)
+        public async Task<IActionResult> SendBytesAsync([FromBody] byte[] data, Guid friendId)
         {
-            var id = new Guid(User.FindFirst("sid").Value);
-
-            await _userService.SendDataAsync(id, friendId, data);
+            await _webSocketManager.SendBytesAsync(friendId, data);
 
             return Ok();
         }

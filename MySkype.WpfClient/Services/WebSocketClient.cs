@@ -50,11 +50,26 @@ namespace MySkype.WpfClient.Services
                     case MessageType.CallRequest:
                         _notificationService.NotifyCallRequest(message.SenderId);
                         break;
-                    case MessageType.CallConfirmation:
+                    case MessageType.CallConfirmed:
                         _notificationService.NotifyCallAccepted(message.SenderId);
+                        break;
+                    case MessageType.CallRejected:
+                        _notificationService.NotifyCallRejected(message.SenderId);
+                        break;
+                    case MessageType.CallEnded:
+                        _notificationService.NotifyCallEnded(message.SenderId);
                         break;
                 }
             });
+        }
+
+        public void SendMessage(Guid targetId, MessageType messageType)
+        {
+            var message = new Message { TargetId = targetId, MessageType = messageType };
+
+            var json = JsonConvert.SerializeObject(message);
+
+            _client.Send(json);
         }
     }
 }

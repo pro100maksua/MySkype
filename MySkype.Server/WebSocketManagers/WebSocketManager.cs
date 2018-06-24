@@ -27,22 +27,24 @@ namespace MySkype.Server.WebSocketManagers
             await _connectionManager.RemoveSocketAsync(id);
         }
 
-        public async Task ReceiveBytesAsync(Guid senderSocketId, WebSocketReceiveResult result, byte[] buffer)
+        public async Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer)
         {
-            await SendBytesAsync(senderSocketId, result, buffer);
+            var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+
+            var message = JsonConvert.DeserializeObject<Message>(json);
+
+            message.SenderId = id;
+
+            await SendMessageAsync(message);
         }
-        public async Task SendAsync(Guid senderId, Guid targetId, MessageType messageType)
+
+
+        public async Task SendMessageAsync(Message message)
         {
-            var targetSocket = _connectionManager.Get(targetId);
+            var targetSocket = _connectionManager.Get(message.TargetId);
 
             if (targetSocket != null)
             {
-                var message = new Message
-                {
-                    MessageType = messageType,
-                    SenderId = senderId
-                };
-
                 var json = JsonConvert.SerializeObject(message);
 
                 await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
@@ -50,26 +52,14 @@ namespace MySkype.Server.WebSocketManagers
             }
         }
 
-        public async Task SendDataAsync(Guid senderId, Guid targetId, byte[] data)
+        public async Task SendBytesAsync(Guid targetId, byte[] data)
         {
-            var targetSocket = _connectionManager.Get(senderId);
+            var targetSocket = _connectionManager.Get(targetId);
 
             if (targetSocket != null)
             {
-                await targetSocket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true,
-                    CancellationToken.None);
-            }
-        }
-
-        private async Task SendBytesAsync(Guid targetSocketId, WebSocketReceiveResult result, byte[] bytes)
-        {
-            var targetSocket = _connectionManager.Get(targetSocketId);
-
-            if (targetSocket.State == WebSocketState.Open)
-            {
-                await targetSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Binary,
-                    result.EndOfMessage,
-                    CancellationToken.None);
+                await targetSocket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary,
+                    true, CancellationToken.None);
             }
         }
     }

@@ -5,7 +5,7 @@ namespace MySkype.Server
 {
     public class MongoContext
     {
-        private IMongoDatabase _database;
+        private readonly IMongoDatabase _database;
 
         //public IMongoCollection<Room> Rooms => _database.GetCollection<Room>("Rooms");
 
@@ -13,6 +13,8 @@ namespace MySkype.Server
 
         public IMongoCollection<Photo> Photos => _database.GetCollection<Photo>("Photos");
 
+        public IMongoCollection<Call> Calls => _database.GetCollection<Call>("Calls");
+        
         public MongoContext()
         {
             _database = new MongoClient().GetDatabase("MySkype");

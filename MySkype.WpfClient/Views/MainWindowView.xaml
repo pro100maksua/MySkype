@@ -83,13 +83,9 @@
                                     <RowDefinition Height="100"/>
                                 </Grid.RowDefinitions>
 
-                                <Ellipse Grid.Column="0" Height="100" Width="100">
-                                    <Ellipse.Fill>
-                                        <ImageBrush  Stretch="Fill" ImageSource="{Binding Avatar.Bitmap}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-
-                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding FullName}"/>
+                                
+                                <TextBlock TextWrapping="Wrap" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding StartTime}"/>
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding Duration}"/>
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

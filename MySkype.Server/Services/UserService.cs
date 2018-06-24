@@ -84,11 +84,18 @@ namespace MySkype.Server.Services
 
         public async Task<bool> SendFriendRequestAsync(Guid id, Guid friendId)
         {
-            var alreadyFriend = await _usersRepository.CheckIfFriendAsync(id, friendId);
+            var isFriend = await _usersRepository.CheckIfFriendAsync(id, friendId);
 
-            if (alreadyFriend) return false;
+            if (isFriend) return false;
 
-            await _webSocketManager.SendAsync(id, friendId, MessageType.FriendRequest);
+            var message = new Message
+            {
+                MessageType = MessageType.FriendRequest,
+                SenderId = id,
+                TargetId = friendId
+            };
+
+            await _webSocketManager.SendMessageAsync(message);
 
             await _usersRepository.AddFriendRequestAsync(friendId, id);
 
@@ -106,20 +113,6 @@ namespace MySkype.Server.Services
 
             return true;
 
-        }
-        
-        public async Task SendCallRequestAsync(Guid id, Guid friendId)
-        {
-            await _webSocketManager.SendAsync(id, friendId, MessageType.CallRequest);
-        }
-        public async Task ConfirmCallAsync(Guid id, Guid friendId)
-        {
-            await _webSocketManager.SendAsync(id, friendId, MessageType.CallConfirmation);
-        }
-
-        public async Task SendDataAsync(Guid id, Guid friendId, byte[] data)
-        {
-            await _webSocketManager.SendDataAsync(id, friendId, data);
         }
     }
 }

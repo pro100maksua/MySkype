@@ -4,6 +4,8 @@
     {
         FriendRequest = 0,
         CallRequest = 1,
-        CallConfirmation = 2
+        CallConfirmed = 2,
+        CallRejected = 3,
+        CallEnded = 4
     }
 }

@@ -4,52 +4,40 @@ using MySkype.WpfClient.Services;
 
 namespace MySkype.WpfClient.Views
 {
-    /// <summary>
-    /// Interaction logic for CallRequestView.xaml
-    /// </summary>
-    public partial class CallRequestView : Window
+    public partial class CallRequestView
     {
-        public CallRequestView(User caller, RestSharpClient restClient)
+
+        private readonly User _caller;
+        private readonly WebSocketClient _webSocketClient;
+
+        public CallRequestView(User caller, WebSocketClient webSocketClient)
         {
             InitializeComponent();
 
-
             _caller = caller;
-            _restClient = restClient;
+            _webSocketClient = webSocketClient;
 
             DataContext = caller;
 
             RejectCallButton.Click += CloseWindow;
-            AcceptAudioCallButton.Click += AcceptAudioCallAsync;
-            AcceptVideoCallButton.Click += AcceptVideoCallAsync;
+            AcceptAudioCallButton.Click += AcceptCall;
+            AcceptVideoCallButton.Click += AcceptCall;
         }
 
-
-        private readonly User _caller;
-        private readonly RestSharpClient _restClient;
-        
-
-        private async void AcceptVideoCallAsync(object sender, RoutedEventArgs e)
+        private void AcceptCall(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
-            Close();
-            // Close(true);
-        }
-
-        private async void AcceptAudioCallAsync(object sender, RoutedEventArgs e)
-        {
-            await _restClient.ConfirmAudioCallAsync(_caller.Id);
+            _webSocketClient.SendMessage(_caller.Id, MessageType.CallConfirmed);
 
             DialogResult = true;
             Close();
-            // Close(true);
         }
 
         private void CloseWindow(object sender, RoutedEventArgs e)
         {
+            _webSocketClient.SendMessage(_caller.Id, MessageType.CallRejected);
+
             DialogResult = false;
             Close();
-            //  Close(false);
         }
     }
 }

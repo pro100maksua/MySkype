@@ -20,11 +20,12 @@ namespace MySkype.WpfClient.ViewModels
         private readonly DispatcherTimer _timer;
         private TimeSpan _duration = TimeSpan.Zero;
         private bool _isCaller;
+        private bool _started;
 
         public bool Started
         {
-            get => _isCaller;
-            set => this.RaiseAndSetIfChanged(ref _isCaller, value);
+            get => _started;
+            set => this.RaiseAndSetIfChanged(ref _started, value);
         }
         public User Friend { get; }
         public TimeSpan Duration
@@ -65,23 +66,14 @@ namespace MySkype.WpfClient.ViewModels
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 StopCall(true);
-                
+
                 OnCloseRequested();
             }));
-
-            //await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
-            //{
-            //    StopCall(true);
-
-            //    MessageBox.Show("Call ended :)");
-            //    //OnCloseRequested();
-            //});
         }
 
         private async void OnCallRejected(object sender, MyEventArgs e)
         {
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(OnCloseRequested));
-            // await Dispatcher.CurrentDispatcher.InvokeAsync(OnCloseRequested);
         }
 
         public event EventHandler CloseRequested;
@@ -118,7 +110,8 @@ namespace MySkype.WpfClient.ViewModels
 
             _callService.StopCall();
 
-            SaveCallInfoAsync();
+            if (_isCaller)
+                SaveCallInfoAsync();
         }
 
         public async Task SaveCallInfoAsync()

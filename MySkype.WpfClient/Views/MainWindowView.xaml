@@ -74,19 +74,18 @@
                 <ListBox ItemsSource="{Binding Calls}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100" />
-                                    <ColumnDefinition Width="200" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="100"/>
-                                </Grid.RowDefinitions>
-
-                                
-                                <TextBlock TextWrapping="Wrap" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding StartTime}"/>
-                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding Duration}"/>
-                            </Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Height="60" Width="60">
+                                    <Ellipse.Fill>
+                                        <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=UserAvatar}"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <StackPanel>
+                                    <TextBlock FontSize="16" Text="{Binding Path=UserFullName}"/>
+                                    <TextBlock Text="{Binding Path=StartTime}"/>
+                                    <TextBlock Text="{Binding Path=Duration}"/>
+                                </StackPanel>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -144,12 +143,12 @@
         <Grid Visibility="{Binding Path=IsLargeUserSet,Converter={StaticResource VisibilityConverter}}" Name="Large" Grid.Column="1" Grid.RowSpan="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="70" />
-                <RowDefinition Height="550"/>
+                <RowDefinition Height="480"/>
             </Grid.RowDefinitions>
 
-            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding LargeUser.FullName}" />
+            <TextBlock Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding Large.User.FullName}" />
 
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" >
+            <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal" >
                 <Button Visibility="{Binding IsLargeUserFriend, Converter={StaticResource ReverseVisibilityConverter}}" HorizontalAlignment="Left" Width="40" Height="40"
                           Command="{Binding SendFriendRequestCommand}" Margin="0,0,20,0" >
                     <Button.Template>
@@ -175,6 +174,28 @@
                     </Button.Template>
                 </Button>
             </StackPanel>
+            <ScrollViewer Grid.Row="1">
+                <ItemsControl Width="700" HorizontalAlignment="Center" VerticalAlignment="Bottom"  ItemsSource="{Binding Path=Large.Calls}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock HorizontalAlignment="Center" Text="{Binding Path=Key,StringFormat=d,ConverterCulture=uk-UA}" />
+                                <ItemsControl HorizontalAlignment="Center" ItemsSource="{Binding}" Padding="0,30,0,30">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Height="50">
+                                                <TextBlock HorizontalAlignment="Center" Text="{Binding Path=StartTime,StringFormat=t,ConverterCulture=uk-UA}"></TextBlock>
+                                                <TextBlock HorizontalAlignment="Center" Text="{Binding Path=Duration}"></TextBlock>
+                                                </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>
+

@@ -30,7 +30,7 @@ namespace MySkype.WpfClient.ViewModels
         private ObservableCollection<CallRepresentation> _calls = new ObservableCollection<CallRepresentation>();
         private ObservableCollection<Message> _notifications = new ObservableCollection<Message>();
         private User _user = new User();
-        private User _largeUser = new User();
+        private LargeArea _large = new LargeArea();
         private bool _isLargeUserFriend;
         private string _searchQuery;
         private bool _isSearchBoxEmpty = true;
@@ -61,15 +61,15 @@ namespace MySkype.WpfClient.ViewModels
             get => _user;
             set => this.RaiseAndSetIfChanged(ref _user, value);
         }
-        public User LargeUser
+        public LargeArea Large
         {
-            get => _largeUser;
+            get => _large;
             set
             {
                 if (!IsLargeUserSet)
                     IsLargeUserSet = true;
 
-                this.RaiseAndSetIfChanged(ref _largeUser, value);
+                this.RaiseAndSetIfChanged(ref _large, value);
             }
         }
         public bool IsLargeUserSet
@@ -116,7 +116,7 @@ namespace MySkype.WpfClient.ViewModels
             AddFriendCommand = new AsyncCommand((senderId) => AddFriendAsync((Guid)senderId));
             SendFriendRequestCommand = new AsyncCommand(SendFriendRequestAsync);
             SendAudioCallRequestCommand = new AsyncCommand(SendAudioCallRequestAsync);
-            SendVideoCallRequestCommand = new AsyncCommand(SendVideoCallRequestAsync);
+            //SendVideoCallRequestCommand = new AsyncCommand(SendVideoCallRequestAsync);
 
         }
 
@@ -139,6 +139,7 @@ namespace MySkype.WpfClient.ViewModels
             var path = !user.Avatar.FileName.Contains(folder)
                 ? Path.Combine(folder, user.Avatar.FileName)
                 : user.Avatar.FileName;
+
             file.SaveAs(path);
 
             var bitmap = new BitmapImage();
@@ -191,12 +192,21 @@ namespace MySkype.WpfClient.ViewModels
         private async Task GetUserCallsAsync()
         {
             var calls = await _restClient.GetUserCallsAsync();
-
-            var callRepr = calls.Select(c => new CallRepresentation
+            
+            var callRepr = calls.Select(c =>
             {
-                Duration = new TimeSpan(c.Duration),
-                StartTime = new DateTime(c.StartTime)
-            }).ToList();
+                var friendId = c.ParticipantIds.FirstOrDefault(p => p != User.Id);
+                var friend = Contacts.FirstOrDefault(f => f.Id == friendId);
+                
+                return new CallRepresentation
+                {
+                    UserId = friendId,
+                    UserFullName = friend.FullName,
+                    UserAvatar = friend.Avatar.Bitmap,
+                    Duration = new TimeSpan(c.Duration),
+                    StartTime = new DateTime(c.StartTime)
+                };
+            }).OrderByDescending(c=>c.StartTime).ToList();
 
             Calls = new ObservableCollection<CallRepresentation>(callRepr);
         }
@@ -258,7 +268,7 @@ namespace MySkype.WpfClient.ViewModels
         {
             IsLargeUserFriend = true;
 
-            await _restClient.SendFriendRequestAsync(LargeUser.Id);
+            await _restClient.SendFriendRequestAsync(Large.User.Id);
         }
 
         private async Task GetFriendRequestsAsync()
@@ -310,26 +320,25 @@ namespace MySkype.WpfClient.ViewModels
             callView.ShowDialog();
         }
 
-        public void SetLargeUser(User user)
+        public void SetLargeArea(User user)
         {
-            LargeUser = user;
+            var large = new LargeArea
+            {
+                User = user,
+                Calls = Calls.Where(c => c.UserId == user.Id).OrderBy(c=>c.StartTime).GroupBy(c=>c.StartTime.Date).ToList()
+            };
 
-            var possibleFriend = Contacts.FirstOrDefault(c => c.Id == user.Id);
+            Large = large;
 
-            IsLargeUserFriend = possibleFriend != null;
-        }
-
-        public async Task SendVideoCallRequestAsync()
-        {
-
+            IsLargeUserFriend = Contacts.Contains(user);
         }
 
         public async Task SendAudioCallRequestAsync()
         {
-            _webSocketClient.SendMessage(LargeUser.Id, MessageType.CallRequest);
+            _webSocketClient.SendMessage(Large.User.Id, MessageType.CallRequest);
 
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
-                new Action(async () => await ShowCallWindowAsync(LargeUser, isCaller: true)));
+                new Action(async () => await ShowCallWindowAsync(Large.User, isCaller: true)));
         }
     }
 }

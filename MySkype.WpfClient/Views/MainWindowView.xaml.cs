@@ -29,7 +29,7 @@ namespace MySkype.WpfClient.Views
 
             var user = listBox.SelectedItem as User;
 
-            _viewModel.SetLargeUser(user);
+            _viewModel.SetLargeArea(user);
         }
 
         private async void SearchStringEntered(object sender, KeyEventArgs e)

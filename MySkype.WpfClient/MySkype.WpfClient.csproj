@@ -130,6 +130,7 @@
     </Compile>
     <Compile Include="Models\Call.cs" />
     <Compile Include="Models\CallRepresentation.cs" />
+    <Compile Include="Models\LargeArea.cs" />
     <Compile Include="Models\Message.cs" />
     <Compile Include="Models\MessageType.cs" />
     <Compile Include="Models\Photo.cs" />

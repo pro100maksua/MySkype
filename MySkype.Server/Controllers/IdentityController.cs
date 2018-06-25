@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MySkype.Server.Models;
 using MySkype.Server.Services;
 
 namespace MySkype.Server.Controllers

@@ -15,9 +15,9 @@
         <StackPanel Width="200" HorizontalAlignment="Center" Visibility="{Binding IsSignUp, Converter={StaticResource ReverseVisibilityConverter}}">
             <Image Source="/Assets/auth.png" />
             <TextBlock Text="Login" />
-            <TextBox Text="{Binding Path=Login}" />
+            <TextBox Text="{Binding Path=Form.Login}" />
             <TextBlock Text="Password" />
-            <TextBox Text="{Binding Path=Password}" />
+            <TextBox Text="{Binding Path=Form.Password}" />
             <ItemsControl ItemsSource="{Binding ErrorMessages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -26,21 +26,21 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
             <Button Width="130" HorizontalAlignment="Right" BorderBrush="White" Background="White" Content="Sign up" Name="SignUpButton" Command="{Binding Path=SignUpCommand}"/>
-            <Button Margin="0,10,0,10" Content="Sign in" Name="SignInButton" />
+            <Button Margin="0,10,0,10" Content="Sign in" Name="SignInButton" Command="{Binding Path=SignInCommand}" />
         </StackPanel>
 
         <StackPanel Width="200" HorizontalAlignment="Center" Visibility="{Binding IsSignUp, Converter={StaticResource VisibilityConverter}}">
 
             <TextBlock Text="Login" />
-            <TextBox Text="{Binding Path=Login}" />
+            <TextBox Text="{Binding Path=Form.Login}" />
             <TextBlock Text="Password" />
-            <TextBox Text="{Binding Path=Password}" />
+            <TextBox Text="{Binding Path=Form.Password}" />
             <TextBlock Text="Email" />
-            <TextBox Text="{Binding Path=Email}" />
+            <TextBox Text="{Binding Path=Form.Email}" />
             <TextBlock Text="First Name" />
-            <TextBox Text="{Binding Path=FirstName}" />
+            <TextBox Text="{Binding Path=Form.FirstName}" />
             <TextBlock Text="Last Name" />
-            <TextBox Text="{Binding Path=LastName}" />
+            <TextBox Text="{Binding Path=Form.LastName}" />
             <ItemsControl ItemsSource="{Binding ErrorMessages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>

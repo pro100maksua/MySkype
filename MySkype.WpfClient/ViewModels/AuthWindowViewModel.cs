@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MySkype.WpfClient.Models;
 using MySkype.WpfClient.Services;
 using Nito.Mvvm;
 using ReactiveUI;
@@ -11,18 +12,11 @@ namespace MySkype.WpfClient.ViewModels
 {
     public class AuthWindowViewModel : ViewModelBase
     {
-        public string Login { get; set; } = "Plotva";
-        public string Password { get; set; } = "plotva";
-        public string Email { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-
-
         private readonly RestSharpClient _restClient;
+        private ObservableCollection<string> _errorMessagges;
         private string _token;
-
-        private ObservableCollection<string> _errorMessagges = new ObservableCollection<string>();
         private bool _isSignUp;
+        private SignUpRequest _form = new SignUpRequest();
 
         public bool IsSignUp
         {
@@ -34,50 +28,67 @@ namespace MySkype.WpfClient.ViewModels
             get => _errorMessagges;
             set => this.RaiseAndSetIfChanged(ref _errorMessagges, value);
         }
+        public SignUpRequest Form
+        {
+            get => _form;
+            set => this.RaiseAndSetIfChanged(ref _form, value);
+        }
 
         public AuthWindowViewModel()
         {
             _restClient = new RestSharpClient(_token);
 
-            SubmitCommand = new AsyncCommand(SignUpAsync);
+            SubmitCommand = new AsyncCommand(SubmitAsync);
+            SignInCommand = new AsyncCommand(SignInAsync);
             SignUpCommand = new AsyncCommand(() =>
             {
                 ErrorMessages = new ObservableCollection<string>();
+                Form = new SignUpRequest();
                 return Task.Run(() => IsSignUp = true);
             });
         }
 
-        public AsyncCommand SubmitCommand { get; set; }
-        public AsyncCommand SignUpCommand { get; set; }
+        public AsyncCommand SubmitCommand { get; }
+        public AsyncCommand SignUpCommand { get; }
+        public AsyncCommand SignInCommand { get; }
 
-        public async Task<string> SignInAsync()
+        public event EventHandler<AuthEventArgs> CloseRequested;
+
+        private void OnCloseRequested()
         {
-            _token = await _restClient.RequestTokenAsync(Login, Password);
-
-            if (_token == null)
-            {
-                ErrorMessages.Add(" - Invalid login or password.");
-            }
-
-            return _token;
+            CloseRequested?.Invoke(this, new AuthEventArgs { Token = _token });
         }
 
-        public async Task SignUpAsync()
+        public async Task SignInAsync()
+        {
+            ErrorMessages = new ObservableCollection<string>();
+            if (Form.Login != null && Form.Password != null)
+            {
+                var tokenRequest = new TokenRequest { Login = Form.Login, Password = Form.Password };
+
+                _token = await _restClient.RequestTokenAsync(tokenRequest);
+
+                if (_token == null)
+                {
+                    ErrorMessages.Add(" - Invalid login or password.");
+                }
+                else
+                {
+                    OnCloseRequested();
+                }
+            }
+            else
+            {
+                ErrorMessages.Add(" - Fields can't be empty.");
+            }
+        }
+
+        public async Task SubmitAsync()
         {
             ErrorMessages = new ObservableCollection<string>();
             if (IsValid())
             {
-
-                var signUpRequest = new SignUpRequest
-                {
-                    Login = Login,
-                    Password = Password,
-                    Email = Email,
-                    FirstName = FirstName,
-                    LastName = LastName
-                };
-
-                var statusCode = await _restClient.SignUpAsync(signUpRequest);
+                var statusCode = await _restClient.SignUpAsync(Form);
 
                 if (statusCode == HttpStatusCode.BadRequest)
                 {
@@ -92,29 +103,47 @@ namespace MySkype.WpfClient.ViewModels
         private bool IsValid()
         {
             var errors = 0;
-            if (string.IsNullOrWhiteSpace(Login) || Login.Length < 4)
+            if (string.IsNullOrWhiteSpace(Form.Login) || Form.Login.Length < 4)
             {
                 ErrorMessages.Add(" - Login should not be less than four characters.");
                 errors++;
             }
-            if (string.IsNullOrWhiteSpace(Password) || Password.Length < 4)
+            if (string.IsNullOrWhiteSpace(Form.Password) || Form.Password.Length < 4)
             {
                 ErrorMessages.Add(" - Password should not be less than four characters.");
                 errors++;
             }
-            if (string.IsNullOrWhiteSpace(Email) || !IsValidEmailAddress(Email))
+            if (string.IsNullOrWhiteSpace(Form.Email) || !IsValidEmail(Form.Email))
             {
                 ErrorMessages.Add(" - Email is invalid.");
                 errors++;
             }
 
+            if (string.IsNullOrWhiteSpace(Form.FirstName))
+            {
+                ErrorMessages.Add(" - First name cannot be empty.");
+                errors++;
+            }
+
+            if (string.IsNullOrWhiteSpace(Form.LastName))
+            {
+                ErrorMessages.Add(" - Last name cannot be empty.");
+                errors++;
+            }
+
             return errors == 0;
         }
-        public bool IsValidEmailAddress(string email)
+
+        public bool IsValidEmail(string email)
         {
             var regex = new Regex(@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
 
             return regex.IsMatch(email);
         }
+    }
+
+    public class AuthEventArgs : EventArgs
+    {
+        public string Token { get; set; }
     }
 }

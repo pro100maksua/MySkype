@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MySkype.Server.Interfaces;
+using MySkype.Server.Models;
 
 namespace MySkype.Server.Services
 {

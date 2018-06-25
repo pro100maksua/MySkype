@@ -54,7 +54,7 @@
                     </ControlTemplate>
                 </Button.Template>
             </Button>
-            <Button Name="StopCallButton" Margin="10,10,10,10" Width="40" Height="40">
+            <Button Command="{Binding CloseCommand}" Margin="10,10,10,10" Width="40" Height="40">
                 <Button.Template>
                     <ControlTemplate>
                         <Ellipse Height="40" Width="40">

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace MySkype.Server.Services
+namespace MySkype.Server.Models
 {
     public class PhotoFile
     {

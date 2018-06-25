@@ -1,4 +1,4 @@
-﻿namespace MySkype.WpfClient.ViewModels
+﻿namespace MySkype.WpfClient.Models
 {
     public class SignUpRequest
     {

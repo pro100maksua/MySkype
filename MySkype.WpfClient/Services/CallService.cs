@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using MySkype.WpfClient.Models;
 using NAudio.Wave;
 using WebSocket4Net;
 

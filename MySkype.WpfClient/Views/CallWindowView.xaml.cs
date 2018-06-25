@@ -18,14 +18,6 @@ namespace MySkype.WpfClient.Views
             {
                 Close();
             };
-
-            StopCallButton.Click += (sender, args) =>
-            {
-                viewModel.StopCall();
-                Close();
-            };
         }
-
-
     }
 }

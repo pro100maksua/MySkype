@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Threading;
 using MySkype.WpfClient.Models;
 using MySkype.WpfClient.Services;
+using Nito.Mvvm;
 using ReactiveUI;
 
 namespace MySkype.WpfClient.ViewModels
@@ -12,14 +13,13 @@ namespace MySkype.WpfClient.ViewModels
     class CallWindowViewModel : ViewModelBase
     {
         private readonly Guid _userId;
+        private readonly bool _isCaller;
         private readonly WebSocketClient _webSocketClient;
         private readonly RestSharpClient _restClient;
         private readonly NotificationService _notificationService;
         private readonly CallService _callService;
-
         private readonly DispatcherTimer _timer;
         private TimeSpan _duration = TimeSpan.Zero;
-        private bool _isCaller;
         private bool _started;
 
         public bool Started
@@ -33,6 +33,8 @@ namespace MySkype.WpfClient.ViewModels
             get => _duration;
             set => this.RaiseAndSetIfChanged(ref _duration, value);
         }
+
+        public AsyncCommand CloseCommand { get; }
 
         public CallWindowViewModel(Guid userId, User friend, WebSocketClient webSocketClient, RestSharpClient restClient, NotificationService notificationService, bool isCaller)
         {
@@ -49,7 +51,9 @@ namespace MySkype.WpfClient.ViewModels
             _timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 1) };
             _timer.Tick += (sender, e) => { Duration = Duration.Add(TimeSpan.FromSeconds(1)); };
             _notificationService.CallRejected += OnCallRejected;
-            _notificationService.CallEnded += StopCallAsync;
+            _notificationService.CallEnded += OnCallEnded;
+
+            CloseCommand = new AsyncCommand(() => FinishCallAsync(false));
 
             if (Started)
             {
@@ -57,40 +61,35 @@ namespace MySkype.WpfClient.ViewModels
             }
             else
             {
-                _notificationService.CallAccepted += StartCall;
+                _notificationService.CallAccepted += OnCallAccepted;
             }
         }
 
-        private async void StopCallAsync(object sender, MyEventArgs e)
+        private async void OnCallEnded(object sender, MyEventArgs e)
         {
-            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-            {
-                StopCall(true);
-
-                OnCloseRequested();
-            }));
+            await FinishCallAsync(true);
         }
-
+        
         private async void OnCallRejected(object sender, MyEventArgs e)
         {
-            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(OnCloseRequested));
+            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(RequestClose));
+        }
+
+        private void OnCallAccepted(object sender, MyEventArgs e)
+        {
+            if (Friend.Id != e.SenderId) return;
+
+            _notificationService.CallAccepted -= OnCallAccepted;
+
+            Started = true;
+            StartCall();
         }
 
         public event EventHandler CloseRequested;
 
-        public void OnCloseRequested()
+        private void RequestClose()
         {
             CloseRequested?.Invoke(this, new EventArgs());
-        }
-
-        private void StartCall(object sender, MyEventArgs e)
-        {
-            if (Friend.Id != e.SenderId) return;
-
-            _notificationService.CallAccepted -= StartCall;
-
-            Started = true;
-            StartCall();
         }
 
         public void StartCall()
@@ -100,7 +99,17 @@ namespace MySkype.WpfClient.ViewModels
             _callService.StartCall();
         }
 
-        public void StopCall(bool requested = false)
+        private async Task FinishCallAsync(bool requested)
+        {
+            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                RequestClose();
+
+                StopCall(requested);
+            }));
+        }
+
+        public void StopCall(bool requested)
         {
             if (_timer.IsEnabled)
                 _timer.Stop();
@@ -111,19 +120,22 @@ namespace MySkype.WpfClient.ViewModels
             _callService.StopCall();
 
             if (_isCaller)
-                SaveCallInfoAsync();
+                SaveCallInfo();
         }
 
-        public async Task SaveCallInfoAsync()
+        public void SaveCallInfo()
         {
-            var call = new Call
+            Task.Run(async () =>
             {
-                Duration = _duration.Ticks,
-                StartTime = DateTime.Now.Subtract(_duration).Ticks,
-                ParticipantIds = new List<Guid> { Friend.Id, _userId }
-            };
+                var call = new Call
+                {
+                    Duration = _duration.Ticks,
+                    StartTime = DateTime.Now.Subtract(_duration).Ticks,
+                    ParticipantIds = new List<Guid> { Friend.Id, _userId }
+                };
 
-            await _restClient.SaveCallInfoAsync(call);
+                await _restClient.SaveCallInfoAsync(call);
+            });
         }
     }
 }

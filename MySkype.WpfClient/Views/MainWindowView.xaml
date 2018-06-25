@@ -131,7 +131,7 @@
         </ListBox>
 
         <StackPanel Grid.Column="1" Grid.RowSpan="2"
-                    Visibility="{Binding Path=IsLargeUserSet, Converter={StaticResource ReverseVisibilityConverter}}">
+                    Visibility="{Binding Path=IsFriendSet, Converter={StaticResource ReverseVisibilityConverter}}">
             <TextBlock HorizontalAlignment="Center" Text="{Binding User.FirstName}" />
             <Ellipse Height="100" Width="100">
                 <Ellipse.Fill>
@@ -140,13 +140,13 @@
             </Ellipse>
         </StackPanel>
 
-        <Grid Visibility="{Binding Path=IsLargeUserSet,Converter={StaticResource VisibilityConverter}}" Name="Large" Grid.Column="1" Grid.RowSpan="2">
+        <Grid Visibility="{Binding Path=IsFriendSet,Converter={StaticResource VisibilityConverter}}" Name="Large" Grid.Column="1" Grid.RowSpan="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="70" />
                 <RowDefinition Height="480"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding Large.User.FullName}" />
+            <TextBlock Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" Text="{Binding Friend.FullName}" />
 
             <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal" >
                 <Button Visibility="{Binding IsLargeUserFriend, Converter={StaticResource ReverseVisibilityConverter}}" HorizontalAlignment="Left" Width="40" Height="40"
@@ -175,7 +175,7 @@
                 </Button>
             </StackPanel>
             <ScrollViewer Grid.Row="1">
-                <ItemsControl Width="700" HorizontalAlignment="Center" VerticalAlignment="Bottom"  ItemsSource="{Binding Path=Large.Calls}">
+                <ItemsControl Width="700" HorizontalAlignment="Center" VerticalAlignment="Bottom"  ItemsSource="{Binding Path=FriendCalls}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel>
@@ -186,7 +186,7 @@
                                             <StackPanel Height="50">
                                                 <TextBlock HorizontalAlignment="Center" Text="{Binding Path=StartTime,StringFormat=t,ConverterCulture=uk-UA}"></TextBlock>
                                                 <TextBlock HorizontalAlignment="Center" Text="{Binding Path=Duration}"></TextBlock>
-                                                </StackPanel>
+                                            </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>

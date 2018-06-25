@@ -1,43 +1,23 @@
-﻿using System.Windows;
-using MySkype.WpfClient.Models;
+﻿using MySkype.WpfClient.Models;
 using MySkype.WpfClient.Services;
+using MySkype.WpfClient.ViewModels;
 
 namespace MySkype.WpfClient.Views
 {
     public partial class CallRequestView
     {
-
-        private readonly User _caller;
-        private readonly WebSocketClient _webSocketClient;
-
         public CallRequestView(User caller, WebSocketClient webSocketClient)
         {
             InitializeComponent();
 
-            _caller = caller;
-            _webSocketClient = webSocketClient;
+            var viewModel = new CallRequestViewModel(caller, webSocketClient);
+            DataContext = viewModel;
 
-            DataContext = caller;
-
-            RejectCallButton.Click += CloseWindow;
-            AcceptAudioCallButton.Click += AcceptCall;
-            AcceptVideoCallButton.Click += AcceptCall;
-        }
-
-        private void AcceptCall(object sender, RoutedEventArgs e)
-        {
-            _webSocketClient.SendMessage(_caller.Id, MessageType.CallConfirmed);
-
-            DialogResult = true;
-            Close();
-        }
-
-        private void CloseWindow(object sender, RoutedEventArgs e)
-        {
-            _webSocketClient.SendMessage(_caller.Id, MessageType.CallRejected);
-
-            DialogResult = false;
-            Close();
+            viewModel.CloseRequested += (sender, e) =>
+            {
+                DialogResult = e.CallAccepted;
+                Close();
+            };
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -30,11 +29,14 @@ namespace MySkype.WpfClient.ViewModels
         private ObservableCollection<CallRepresentation> _calls = new ObservableCollection<CallRepresentation>();
         private ObservableCollection<Message> _notifications = new ObservableCollection<Message>();
         private User _user = new User();
-        private LargeArea _large = new LargeArea();
         private bool _isLargeUserFriend;
         private string _searchQuery;
         private bool _isSearchBoxEmpty = true;
-        private bool _isLargeUserSet;
+        private bool _isFriendSet;
+        private User _friend;
+
+        private List<IGrouping<DateTime, CallRepresentation>> _friendCalls =
+            new List<IGrouping<DateTime, CallRepresentation>>();
 
         public ObservableCollection<User> Contacts
         {
@@ -61,21 +63,29 @@ namespace MySkype.WpfClient.ViewModels
             get => _user;
             set => this.RaiseAndSetIfChanged(ref _user, value);
         }
-        public LargeArea Large
+
+        public User Friend
         {
-            get => _large;
+            get => _friend;
             set
             {
-                if (!IsLargeUserSet)
-                    IsLargeUserSet = true;
+                if (!IsFriendSet)
+                    IsFriendSet = true;
 
-                this.RaiseAndSetIfChanged(ref _large, value);
+                this.RaiseAndSetIfChanged(ref _friend, value);
             }
         }
-        public bool IsLargeUserSet
+
+        public List<IGrouping<DateTime, CallRepresentation>> FriendCalls
         {
-            get => _isLargeUserSet;
-            set => this.RaiseAndSetIfChanged(ref _isLargeUserSet, value);
+            get => _friendCalls;
+            set => this.RaiseAndSetIfChanged(ref _friendCalls, value);
+
+        }
+        public bool IsFriendSet
+        {
+            get => _isFriendSet;
+            set => this.RaiseAndSetIfChanged(ref _isFriendSet, value);
         }
         public bool IsLargeUserFriend
         {
@@ -193,12 +203,12 @@ namespace MySkype.WpfClient.ViewModels
         private async Task GetUserCallsAsync()
         {
             var calls = await _restClient.GetUserCallsAsync();
-            
+
             var callRepr = calls.Select(c =>
             {
                 var friendId = c.ParticipantIds.FirstOrDefault(p => p != User.Id);
                 var friend = Contacts.FirstOrDefault(f => f.Id == friendId);
-                
+
                 return new CallRepresentation
                 {
                     UserId = friendId,
@@ -207,7 +217,7 @@ namespace MySkype.WpfClient.ViewModels
                     Duration = new TimeSpan(c.Duration),
                     StartTime = new DateTime(c.StartTime)
                 };
-            }).OrderByDescending(c=>c.StartTime).ToList();
+            }).OrderByDescending(c => c.StartTime).ToList();
 
             Calls = new ObservableCollection<CallRepresentation>(callRepr);
         }
@@ -269,7 +279,7 @@ namespace MySkype.WpfClient.ViewModels
         {
             IsLargeUserFriend = true;
 
-            await _restClient.SendFriendRequestAsync(Large.User.Id);
+            await _restClient.SendFriendRequestAsync(Friend.Id);
         }
 
         private async Task GetFriendRequestsAsync()
@@ -323,23 +333,22 @@ namespace MySkype.WpfClient.ViewModels
 
         public void SetLargeArea(User user)
         {
-            var large = new LargeArea
-            {
-                User = user,
-                Calls = Calls.Where(c => c.UserId == user.Id).OrderBy(c=>c.StartTime).GroupBy(c=>c.StartTime.Date).ToList()
-            };
-
-            Large = large;
+            Friend = user;
+            FriendCalls = Calls
+                .Where(c => c.UserId == user.Id)
+                .OrderBy(c => c.StartTime)
+                .GroupBy(c => c.StartTime.Date)
+                .ToList();
 
             IsLargeUserFriend = Contacts.Contains(user);
         }
 
         public async Task SendAudioCallRequestAsync()
         {
-            _webSocketClient.SendMessage(Large.User.Id, MessageType.CallRequest);
+            _webSocketClient.SendMessage(Friend.Id, MessageType.CallRequest);
 
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
-                new Action(async () => await ShowCallWindowAsync(Large.User, isCaller: true)));
+                new Action(async () => await ShowCallWindowAsync(Friend, isCaller: true)));
         }
     }
 }

@@ -24,7 +24,7 @@ namespace MySkype.Server.Controllers
         public async Task<IActionResult> GetAllAsync([FromQuery] string searchQuery)
         {
             var userId = new Guid(User.FindFirst("sid").Value);
-            
+
             var users = await _userService.GetAllAsync(searchQuery);
 
             return Ok(users.Where(u => u.Id != userId));
@@ -42,9 +42,9 @@ namespace MySkype.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> PostAsync([FromBody] RequestUserDto requestUserDto)
         {
-            if (!ModelState.IsValid)
+            if (await _userService.UserExistsAsync(requestUserDto.Login))
                 return BadRequest();
-
+            
             var user = await _userService.PostAsync(requestUserDto);
 
             return Ok(user);

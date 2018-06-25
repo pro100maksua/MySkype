@@ -65,6 +65,12 @@ namespace MySkype.Server.Services
 
             return user;
         }
+
+        public async Task<bool> UserExistsAsync(string login)
+        {
+            return await _usersRepository.UserExistsAsync(login);
+        }
+
         public async Task<IEnumerable<ResponseUserDto>> GetFriendsAsync(Guid id)
         {
             var user = await _usersRepository.GetAsync(id);

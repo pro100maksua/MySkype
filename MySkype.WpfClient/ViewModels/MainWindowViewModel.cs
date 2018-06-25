@@ -111,6 +111,7 @@ namespace MySkype.WpfClient.ViewModels
 
             _notificationService.FriendRequestReceived += ReceiveFriendRequestAsync;
             _notificationService.CallRequestReceived += ReceiveCallAsync;
+            _notificationService.UserOffline += (sender, args) => MessageBox.Show("User is offline");
 
             ChoosePhotoCommand = new AsyncCommand(ChoosePhotoAsync);
             AddFriendCommand = new AsyncCommand((senderId) => AddFriendAsync((Guid)senderId));

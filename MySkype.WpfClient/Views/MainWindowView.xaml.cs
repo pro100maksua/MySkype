@@ -44,8 +44,6 @@ namespace MySkype.WpfClient.Views
             Hide();
             await _viewModel.InitAsync();
             Show();
-
-
         }
     }
 }

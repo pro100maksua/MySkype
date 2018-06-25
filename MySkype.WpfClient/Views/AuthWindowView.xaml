@@ -3,17 +3,53 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MySkype.WpfClient"
+        xmlns:local="clr-namespace:MySkype.WpfClient.ValueConverters"
         mc:Ignorable="d"
-        Title="AuthWindowView" ResizeMode="NoResize" Height="400" Width="400">
+        Title="AuthWindowView" ResizeMode="NoResize" Height="400" Width="350">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibilityConverter" />
+        <local:ReverseVisibilityConverter  x:Key="ReverseVisibilityConverter"/>
+    </Window.Resources>
 
-    <StackPanel Width="200" HorizontalAlignment="Center">
-        <Image Source="/Assets/auth.png" />
-        <TextBlock Text="Login" />
-        <TextBox Text="{Binding Path=Login}" />
-        <TextBlock Text="Password" />
-        <TextBox Text="{Binding Path=Password}" />
-        <TextBlock Foreground="Red" Text="{Binding Path=ErrorMessage}" />
-        <Button Content="Sign in" Name="SignInButton" />
-    </StackPanel>
+    <Grid>
+        <StackPanel Width="200" HorizontalAlignment="Center" Visibility="{Binding IsSignUp, Converter={StaticResource ReverseVisibilityConverter}}">
+            <Image Source="/Assets/auth.png" />
+            <TextBlock Text="Login" />
+            <TextBox Text="{Binding Path=Login}" />
+            <TextBlock Text="Password" />
+            <TextBox Text="{Binding Path=Password}" />
+            <ItemsControl ItemsSource="{Binding ErrorMessages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock TextWrapping="Wrap" Foreground="Red" Text="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Width="130" HorizontalAlignment="Right" BorderBrush="White" Background="White" Content="Sign up" Name="SignUpButton" Command="{Binding Path=SignUpCommand}"/>
+            <Button Margin="0,10,0,10" Content="Sign in" Name="SignInButton" />
+        </StackPanel>
+
+        <StackPanel Width="200" HorizontalAlignment="Center" Visibility="{Binding IsSignUp, Converter={StaticResource VisibilityConverter}}">
+
+            <TextBlock Text="Login" />
+            <TextBox Text="{Binding Path=Login}" />
+            <TextBlock Text="Password" />
+            <TextBox Text="{Binding Path=Password}" />
+            <TextBlock Text="Email" />
+            <TextBox Text="{Binding Path=Email}" />
+            <TextBlock Text="First Name" />
+            <TextBox Text="{Binding Path=FirstName}" />
+            <TextBlock Text="Last Name" />
+            <TextBox Text="{Binding Path=LastName}" />
+            <ItemsControl ItemsSource="{Binding ErrorMessages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock TextWrapping="Wrap" Foreground="Red" Text="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Margin="0,10,0,10" Content="Submit" Name="Submit" Command="{Binding SubmitCommand}" />
+        </StackPanel>
+    </Grid>
 </Window>
+

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using MySkype.WpfClient.Models;
+using MySkype.WpfClient.ViewModels;
 using RestSharp;
 
 namespace MySkype.WpfClient.Services
@@ -82,6 +83,19 @@ namespace MySkype.WpfClient.Services
             var response = await _restClient.ExecutePostTaskAsync<string>(request);
 
             return response.StatusCode == HttpStatusCode.OK ? response.Data : null;
+        }
+
+
+
+        public async Task<HttpStatusCode> SignUpAsync(SignUpRequest signUpRequest)
+        {
+            var request = new RestRequest("/api/users/", Method.POST);
+            request.AddHeader("Authorization", "Bearer " + _token);
+            request.AddJsonBody(signUpRequest);
+
+            var result = await _restClient.ExecuteTaskAsync(request);
+
+            return result.StatusCode;
         }
 
         public async Task SendDataAsync(Guid friendId, byte[] data)

@@ -27,29 +27,38 @@ namespace MySkype.Server.WebSocketManagers
             await _connectionManager.RemoveSocketAsync(id);
         }
 
+
         public async Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer)
         {
             var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
             var message = JsonConvert.DeserializeObject<Message>(json);
-
             message.SenderId = id;
+
+            if (!CheckIfUserOnline(message.TargetId))
+            {
+                message.MessageType = MessageType.UserOffline;
+                message.TargetId = id;
+            }
 
             await SendMessageAsync(message);
         }
 
+        public bool CheckIfUserOnline(Guid id)
+        {
+            var targetSocket = _connectionManager.Get(id);
+
+            return targetSocket != null;
+        }
 
         public async Task SendMessageAsync(Message message)
         {
-            var targetSocket = _connectionManager.Get(message.TargetId);
+            var socket = _connectionManager.Get(message.TargetId);
+            
+            var json = JsonConvert.SerializeObject(message);
 
-            if (targetSocket != null)
-            {
-                var json = JsonConvert.SerializeObject(message);
-
-                await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
-                    WebSocketMessageType.Text, true, CancellationToken.None);
-            }
+            await socket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
+                WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
         public async Task SendBytesAsync(Guid targetId, byte[] data)

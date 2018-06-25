@@ -118,7 +118,7 @@ namespace MySkype.Server.Services
                 graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
                 graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphics.DrawString(initials, new Font("Tahoma", 35), Brushes.Black, rectangleF, sf);
+                graphics.DrawString(initials, new Font("Tahoma", 35), Brushes.DodgerBlue, rectangleF, sf);
                 graphics.Flush();
 
                 var photoId = await UploadAsync(image);

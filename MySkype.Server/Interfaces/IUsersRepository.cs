@@ -17,5 +17,6 @@ namespace MySkype.Server.Interfaces
         Task AddAsync(User user);
         Task<User> GetAsync(string login, string password);
         Task SetUserPhotoAsync(Guid userId, Guid photoId);
+        Task<bool> UserExistsAsync(string dtoLogin);
     }
 }

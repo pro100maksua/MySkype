@@ -54,6 +54,11 @@ namespace MySkype.Server.Repositories
             await _context.Users.UpdateOneAsync(u => u.Id == userId, update);
         }
 
+        public async Task<bool> UserExistsAsync(string login)
+        {
+            return await _context.Users.Find(u => u.Login == login).AnyAsync();
+        }
+
         public async Task AddFriendRequestAsync(Guid id, Guid friendId)
         {
             var update = Builders<User>.Update.AddToSet(u => u.FriendRequests, friendId);

@@ -134,17 +134,17 @@
     <Compile Include="Models\Message.cs" />
     <Compile Include="Models\MessageType.cs" />
     <Compile Include="Models\Photo.cs" />
-    <Compile Include="Models\Room.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Services\CallService.cs" />
     <Compile Include="Services\MyEventArgs.cs" />
     <Compile Include="Services\NotificationService.cs" />
     <Compile Include="Services\RespSharpClient.cs" />
     <Compile Include="Services\WebSocketClient.cs" />
-    <Compile Include="ValueConverters\ReverseVisilibityConverter.cs" />
+    <Compile Include="ValueConverters\ReverseVisibilityConverter.cs" />
     <Compile Include="ViewModels\AuthWindowViewModel.cs" />
     <Compile Include="ViewModels\CallWindowViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="Models\SignUpRequest.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Views\AuthWindowView.xaml.cs">
       <DependentUpon>AuthWindowView.xaml</DependentUpon>

@@ -3,10 +3,7 @@ using MySkype.WpfClient.ViewModels;
 
 namespace MySkype.WpfClient.Views
 {
-    /// <summary>
-    /// Interaction logic for AuthWindowView.xaml
-    /// </summary>
-    public partial class AuthWindowView : Window
+    public partial class AuthWindowView
     {
         private readonly AuthWindowViewModel _viewModel;
 

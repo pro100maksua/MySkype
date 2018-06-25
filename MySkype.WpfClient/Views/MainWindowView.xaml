@@ -10,7 +10,7 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
-        <local:ReverseVisilibityConverter x:Key="ReverseVisibilityConverter"/>
+        <local:ReverseVisibilityConverter x:Key="ReverseVisibilityConverter"/>
     </Window.Resources>
 
     <Grid>

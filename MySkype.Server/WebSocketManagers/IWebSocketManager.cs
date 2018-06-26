@@ -12,5 +12,6 @@ namespace MySkype.Server.WebSocketManagers
         Task SendMessageAsync(Message message);
         Task SendBytesAsync(Guid targetId, byte[] data);
         Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer);
+        Task<bool> CheckIfUserIsOnlineAsync(Guid id);
     }
 }

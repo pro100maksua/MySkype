@@ -24,19 +24,19 @@ namespace MySkype.WpfClient.ViewModels
         private WebSocketClient _webSocketClient;
         private readonly NotificationService _notificationService;
 
+        private bool _isLargeUserFriend;
+        private bool _isSearchBoxEmpty = true;
+        private bool _isFriendSet;
+        private string _searchQuery;
+        private User _friend;
+        private User _user = new User();
         private ObservableCollection<User> _contacts = new ObservableCollection<User>();
         private ObservableCollection<User> _searchResult = new ObservableCollection<User>();
         private ObservableCollection<CallRepresentation> _calls = new ObservableCollection<CallRepresentation>();
         private ObservableCollection<Message> _notifications = new ObservableCollection<Message>();
-        private User _user = new User();
-        private bool _isLargeUserFriend;
-        private string _searchQuery;
-        private bool _isSearchBoxEmpty = true;
-        private bool _isFriendSet;
-        private User _friend;
-
         private List<IGrouping<DateTime, CallRepresentation>> _friendCalls =
             new List<IGrouping<DateTime, CallRepresentation>>();
+
 
         public ObservableCollection<User> Contacts
         {
@@ -63,7 +63,6 @@ namespace MySkype.WpfClient.ViewModels
             get => _user;
             set => this.RaiseAndSetIfChanged(ref _user, value);
         }
-
         public User Friend
         {
             get => _friend;
@@ -75,7 +74,6 @@ namespace MySkype.WpfClient.ViewModels
                 this.RaiseAndSetIfChanged(ref _friend, value);
             }
         }
-
         public List<IGrouping<DateTime, CallRepresentation>> FriendCalls
         {
             get => _friendCalls;
@@ -121,16 +119,19 @@ namespace MySkype.WpfClient.ViewModels
 
             _notificationService.FriendRequestReceived += ReceiveFriendRequestAsync;
             _notificationService.CallRequestReceived += ReceiveCallAsync;
-            _notificationService.UserOffline += (sender, args) => MessageBox.Show("User is offline");
 
+            InitAsync();
+
+            SearchCommand = new AsyncCommand(SearchAsync);
             ChoosePhotoCommand = new AsyncCommand(ChoosePhotoAsync);
-            AddFriendCommand = new AsyncCommand((senderId) => AddFriendAsync((Guid)senderId));
             SendFriendRequestCommand = new AsyncCommand(SendFriendRequestAsync);
             SendAudioCallRequestCommand = new AsyncCommand(SendAudioCallRequestAsync);
-            //SendVideoCallRequestCommand = new AsyncCommand(SendVideoCallRequestAsync);
-
+            AddFriendCommand = new AsyncCommand(senderId => AddFriendAsync((Guid)senderId));
+            SetFriendCommand = new AsyncCommand(friend => SetLargeAreaAsync((User)friend));
         }
 
+        public AsyncCommand SearchCommand { get; set; }
+        public AsyncCommand SetFriendCommand { get; set; }
         public AsyncCommand ChoosePhotoCommand { get; }
         public AsyncCommand AddFriendCommand { get; }
         public AsyncCommand SendFriendRequestCommand { get; }
@@ -308,47 +309,64 @@ namespace MySkype.WpfClient.ViewModels
 
         public async void ReceiveCallAsync(object sender, MyEventArgs e)
         {
-            var caller = Contacts.FirstOrDefault(c => c.Id == e.SenderId);
+            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(async () =>
+            {
+                var caller = Contacts.FirstOrDefault(c => c.Id == e.SenderId);
 
-            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
-                new Action(async () =>
+                var callRequestWindow = new CallRequestView(caller, _webSocketClient);
+
+                var accepted = callRequestWindow.ShowDialog();
+
+                if (accepted.Value)
                 {
-                    var callRequestWindow = new CallRequestView(caller, _webSocketClient);
-
-                    var accepted = callRequestWindow.ShowDialog();
-
-                    if (accepted.Value)
-                    {
-                        await ShowCallWindowAsync(caller, isCaller: false);
-                    }
-                }));
+                    await ShowCallWindowAsync(caller, isCaller: false);
+                }
+            }));
         }
 
         private async Task ShowCallWindowAsync(User friend, bool isCaller)
         {
-            var callView = new CallWindowView(User.Id, friend, _webSocketClient, _restClient, _notificationService, isCaller);
+            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                var callView = new CallWindowView(User.Id, friend, _webSocketClient, _restClient, _notificationService,
+                    isCaller);
 
-            callView.ShowDialog();
+                callView.ShowDialog();
+            }));
         }
 
-        public void SetLargeArea(User user)
+        public async Task SetLargeAreaAsync(User user)
         {
-            Friend = user;
-            FriendCalls = Calls
-                .Where(c => c.UserId == user.Id)
-                .OrderBy(c => c.StartTime)
-                .GroupBy(c => c.StartTime.Date)
-                .ToList();
+            await Task.Run(() =>
+            {
+                if (user != null)
+                {
+                    Friend = user;
+                    FriendCalls = Calls
+                        .Where(c => c.UserId == user.Id)
+                        .OrderBy(c => c.StartTime)
+                        .GroupBy(c => c.StartTime.Date)
+                        .ToList();
 
-            IsLargeUserFriend = Contacts.Contains(user);
+                    IsLargeUserFriend = Contacts.Contains(user);
+                }
+            });
         }
 
         public async Task SendAudioCallRequestAsync()
         {
+            var isOnline = await _restClient.CheckIfUserOnlineAsync(Friend.Id);
+
+            if (!isOnline)
+            {
+                MessageBox.Show("User is offline");
+                return;
+            }
+
             _webSocketClient.SendMessage(Friend.Id, MessageType.CallRequest);
 
-            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
-                new Action(async () => await ShowCallWindowAsync(Friend, isCaller: true)));
+            await ShowCallWindowAsync(Friend, isCaller: true);
+
         }
     }
 }

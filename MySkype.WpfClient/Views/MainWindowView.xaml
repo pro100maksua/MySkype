@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:local="clr-namespace:MySkype.WpfClient.ValueConverters"
         mc:Ignorable="d"
         Icon="/Assets/avalonia-logo.ico"
@@ -22,7 +23,6 @@
             <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="700"/>
         </Grid.ColumnDefinitions>
-
         <Grid Grid.Column="0" Grid.Row="0" Height="90">
             <Grid.RowDefinitions>
                 <RowDefinition Height="60"/>
@@ -48,12 +48,22 @@
                 </StackPanel>
             </ContentControl>
 
-            <TextBox Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Path=SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="SearchTextBox"/>
+            <TextBox Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Path=SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="SearchTextBox">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding Path=SearchCommand}"/>
+                </TextBox.InputBindings>
+            </TextBox>
         </Grid>
 
         <TabControl Grid.Column="0" Grid.Row="1" Height="530">
             <TabItem Header="Contacts">
                 <ListBox ItemsSource="{Binding Path=Contacts}" Name="Contacts">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding SetFriendCommand}" 
+                                                   CommandParameter="{Binding ElementName=Contacts, Path=SelectedItem}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -114,6 +124,12 @@
 
         <ListBox Name="SearchResult" ItemsSource="{Binding SearchResult}" Grid.Column="0" Grid.Row="1" Height="530" 
                  Visibility="{Binding Path=IsSearchBoxEmpty,Converter={StaticResource ReverseVisibilityConverter}}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectionChanged">
+                    <i:InvokeCommandAction Command="{Binding SetFriendCommand}" 
+                                           CommandParameter="{Binding ElementName=SearchResult, Path=SelectedItem}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">

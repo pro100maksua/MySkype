@@ -120,5 +120,10 @@ namespace MySkype.Server.Services
             return true;
 
         }
+
+        public async Task<bool> CheckIfUserIsOnlineAsync(Guid userId)
+        {
+            return await _webSocketManager.CheckIfUserIsOnlineAsync(userId);
+        }
     }
 }

@@ -14,9 +14,9 @@ namespace MySkype.WpfClient.Services
 
         public RestSharpClient(string token)
         {
-            _restClient.AddDefaultHeader("Authorization", "Bearer "+ token);
+            _restClient.AddDefaultHeader("Authorization", "Bearer " + token);
         }
-        
+
         public async Task<List<User>> GetUsersAsync(string searchQuery)
         {
             var request = new RestRequest("/api/users", Method.GET);
@@ -39,13 +39,15 @@ namespace MySkype.WpfClient.Services
 
         public async Task<byte[]> GetPhotoAsync(Guid avatarId)
         {
-            var request = new RestRequest("/api/photos/{id}", Method.GET);
-            request.AddUrlSegment("id", avatarId.ToString());
+            return await Task.Run(() =>
+            {
+                var request = new RestRequest("/api/photos/{id}", Method.GET);
+                request.AddUrlSegment("id", avatarId.ToString());
 
-            var file = _restClient.DownloadData(request);
+                var file = _restClient.DownloadData(request);
 
-            return file;
-
+                return file;
+            });
         }
 
         public async Task<List<User>> GetFriendsAsync()
@@ -134,6 +136,16 @@ namespace MySkype.WpfClient.Services
 
             var photo = response.Data;
             return photo;
+        }
+
+        public async Task<bool> CheckIfUserOnlineAsync(Guid userId)
+        {
+            var request = new RestRequest("/api/users/{userId}/isOnline", Method.POST);
+            request.AddUrlSegment("userId", userId);
+
+            var response = await _restClient.ExecuteTaskAsync<bool>(request);
+
+            return response.Data;
         }
     }
 }

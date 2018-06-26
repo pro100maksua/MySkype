@@ -59,9 +59,6 @@ namespace MySkype.WpfClient.Services
                     case MessageType.CallEnded:
                         _notificationService.NotifyCallEnded(message.SenderId);
                         break;
-                    case MessageType.UserOffline:
-                        _notificationService.NotifyUserOffline();
-                        break;
                 }
             });
         }

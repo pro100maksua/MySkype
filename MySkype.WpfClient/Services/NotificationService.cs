@@ -9,7 +9,6 @@ namespace MySkype.WpfClient.Services
         public event EventHandler<MyEventArgs> CallAccepted;
         public event EventHandler<MyEventArgs> CallRejected;
         public event EventHandler<MyEventArgs> CallEnded;
-        public event EventHandler UserOffline;
 
         public void NotifyCallRejected(Guid senderId)
         {
@@ -34,11 +33,6 @@ namespace MySkype.WpfClient.Services
         public void NotifyCallAccepted(Guid senderId)
         {
             CallAccepted?.Invoke(this, new MyEventArgs { SenderId = senderId });
-        }
-
-        public void NotifyUserOffline()
-        {
-            UserOffline?.Invoke(this, new EventArgs());
         }
     }
 }

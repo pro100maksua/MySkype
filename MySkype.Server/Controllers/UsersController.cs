@@ -44,10 +44,18 @@ namespace MySkype.Server.Controllers
         {
             if (await _userService.UserExistsAsync(requestUserDto.Login))
                 return BadRequest();
-            
+
             var user = await _userService.PostAsync(requestUserDto);
 
             return Ok(user);
+        }
+
+        [HttpGet("{userId}/isOnline")]
+        public async Task<IActionResult> CheckIfUserIsOnlineAsync(Guid userId)
+        {
+            var isOnline = await _userService.CheckIfUserIsOnlineAsync(userId);
+
+            return Ok(isOnline);
         }
     }
 }

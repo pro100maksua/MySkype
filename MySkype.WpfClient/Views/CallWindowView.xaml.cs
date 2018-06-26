@@ -14,10 +14,7 @@ namespace MySkype.WpfClient.Views
             var viewModel = new CallWindowViewModel(userId, friend, webSocketClient, restClient, notificationService, isCaller);
             DataContext = viewModel;
 
-            viewModel.CloseRequested += (sender, e) =>
-            {
-                Close();
-            };
+            viewModel.CloseRequested += (sender, e) => Close();
         }
     }
 }

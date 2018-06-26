@@ -6,7 +6,6 @@
         CallRequest = 1,
         CallConfirmed = 2,
         CallRejected = 3,
-        CallEnded = 4,
-        UserOffline = 5
+        CallEnded = 4
     }
 }

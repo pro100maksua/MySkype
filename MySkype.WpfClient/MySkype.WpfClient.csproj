@@ -141,6 +141,7 @@
     <Compile Include="Models\Photo.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Services\CallService.cs" />
+    <Compile Include="Services\Codec.cs" />
     <Compile Include="Services\MyEventArgs.cs" />
     <Compile Include="Services\NotificationService.cs" />
     <Compile Include="Services\RespSharpClient.cs" />

@@ -53,7 +53,7 @@
 
         <TabControl Grid.Column="0" Grid.Row="1" Height="530">
             <TabItem Header="Contacts">
-                <ListBox ItemsSource="{Binding Contacts}" Name="Contacts">
+                <ListBox ItemsSource="{Binding Path=Contacts}" Name="Contacts">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -62,7 +62,6 @@
                                         <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=Avatar.Bitmap}"/>
                                     </Ellipse.Fill>
                                 </Ellipse>
-
                                 <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" Width="220" Height="50" FontSize="16" Text="{Binding Path=FullName}"/>
                             </StackPanel>
                         </DataTemplate>

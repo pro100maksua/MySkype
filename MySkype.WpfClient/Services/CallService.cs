@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using NAudio.Wave;
 using WebSocket4Net;
 
@@ -10,8 +9,9 @@ namespace MySkype.WpfClient.Services
         private readonly WebSocketClient _webSocketClient;
         private readonly RestSharpClient _restClient;
         private readonly Guid _friendId;
-        private WaveIn _input = new WaveIn { WaveFormat = new WaveFormat(8000, 16, 1), BufferMilliseconds = 50 };
+        private WaveIn _input = new WaveIn { WaveFormat = new WaveFormat(8000, 16, 1), BufferMilliseconds = 100 };
         private BufferedWaveProvider _bufferStream = new BufferedWaveProvider(new WaveFormat(8000, 16, 1));
+        private readonly Codec _codec = new Codec();
         private WaveOut _output = new WaveOut();
 
         public CallService(WebSocketClient webSocketClient, RestSharpClient restClient, Guid friendId)
@@ -29,14 +29,16 @@ namespace MySkype.WpfClient.Services
 
         private void OnDataReceived(object sender, DataReceivedEventArgs e)
         {
-            _bufferStream.AddSamples(e.Data, 0, e.Data.Length);
+            var decoded = _codec.Decode(e.Data, 0, e.Data.Length);
+
+            _bufferStream.AddSamples(decoded, 0, decoded.Length);
         }
 
         private async void OnDataAvailable(object sender, WaveInEventArgs e)
         {
-            var data = e.Buffer.Take(e.BytesRecorded).ToArray();
+            var encoded = _codec.Encode(e.Buffer, 0, e.BytesRecorded);
 
-            await _restClient.SendDataAsync(_friendId, data);
+            await _restClient.SendDataAsync(_friendId, encoded);
         }
 
         public void StartCall()

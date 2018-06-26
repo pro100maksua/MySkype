@@ -17,7 +17,7 @@ namespace MySkype.WpfClient.Services
             add => _client.DataReceived += value;
             remove => _client.DataReceived -= value;
         }
-
+        
         public WebSocketClient(NotificationService notificationService, string token)
         {
             _notificationService = notificationService;

@@ -7,17 +7,15 @@ namespace MySkype.WpfClient.Services
     public class CallService
     {
         private readonly WebSocketClient _webSocketClient;
-        private readonly RestSharpClient _restClient;
         private readonly Guid _friendId;
         private WaveIn _input = new WaveIn { WaveFormat = new WaveFormat(8000, 16, 1), BufferMilliseconds = 100 };
         private BufferedWaveProvider _bufferStream = new BufferedWaveProvider(new WaveFormat(8000, 16, 1));
         private readonly Codec _codec = new Codec();
         private WaveOut _output = new WaveOut();
 
-        public CallService(WebSocketClient webSocketClient, RestSharpClient restClient, Guid friendId)
+        public CallService(WebSocketClient webSocketClient, Guid friendId)
         {
             _webSocketClient = webSocketClient;
-            _restClient = restClient;
             _friendId = friendId;
 
             _webSocketClient.DataReceived += OnDataReceived;
@@ -38,7 +36,29 @@ namespace MySkype.WpfClient.Services
         {
             var encoded = _codec.Encode(e.Buffer, 0, e.BytesRecorded);
 
-            await _restClient.SendDataAsync(_friendId, encoded);
+            await _webSocketClient.SendDataAsync(_friendId, encoded);
+        }
+
+        public void PauseRecording()
+        {
+            _input.StopRecording();
+        }
+
+        public void ContinueRecording()
+        {
+            _input.StartRecording();
+        }
+
+        public void PausePlaying()
+        {
+            _output.Pause();
+        }
+
+        public void ContinuePlaying()
+        {
+            _bufferStream.ClearBuffer();
+
+            _output.Play();
         }
 
         public void StartCall()

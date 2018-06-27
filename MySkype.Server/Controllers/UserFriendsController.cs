@@ -12,13 +12,13 @@ namespace MySkype.Server.Controllers
     [ApiController]
     public class UserFriendsController : ControllerBase
     {
-        private readonly UserService _userService;
         private readonly IWebSocketManager _webSocketManager;
+        private readonly UserFriendsService _userFriendsService;
 
-        public UserFriendsController(UserService userService, IWebSocketManager webSocketManager)
+        public UserFriendsController(IWebSocketManager webSocketManager, UserFriendsService userFriendsService)
         {
-            _userService = userService;
             _webSocketManager = webSocketManager;
+            _userFriendsService = userFriendsService;
         }
 
         [HttpGet]
@@ -26,7 +26,7 @@ namespace MySkype.Server.Controllers
         {
             var id = new Guid(User.FindFirst("sid").Value);
 
-            var friends = await _userService.GetFriendsAsync(id);
+            var friends = await _userFriendsService.GetFriendsAsync(id);
 
             return Ok(friends);
         }
@@ -36,7 +36,7 @@ namespace MySkype.Server.Controllers
         {
             var id = new Guid(User.FindFirst("sid").Value);
 
-            var result = await _userService.SendFriendRequestAsync(id, friendId);
+            var result = await _userFriendsService.SendFriendRequestAsync(id, friendId);
 
             return Ok(result);
         }
@@ -46,17 +46,9 @@ namespace MySkype.Server.Controllers
         {
             var id = new Guid(User.FindFirst("sid").Value);
 
-            var result = await _userService.ConfirmFriendRequestAsync(id, friendId);
+            var result = await _userFriendsService.ConfirmFriendRequestAsync(id, friendId);
 
             return Ok(result);
-        }
-
-        [HttpPost("{friendId}/data")]
-        public async Task<IActionResult> SendBytesAsync([FromBody] byte[] data, Guid friendId)
-        {
-            await _webSocketManager.SendBytesAsync(friendId, data);
-
-            return Ok();
         }
     }
 }

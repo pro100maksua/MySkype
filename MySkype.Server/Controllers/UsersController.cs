@@ -53,7 +53,7 @@ namespace MySkype.Server.Controllers
         [HttpGet("{userId}/isOnline")]
         public async Task<IActionResult> CheckIfUserIsOnlineAsync(Guid userId)
         {
-            var isOnline = await _userService.CheckIfUserIsOnlineAsync(userId);
+            var isOnline = await _userService.UserIsOnlineAsync(userId);
 
             return Ok(isOnline);
         }

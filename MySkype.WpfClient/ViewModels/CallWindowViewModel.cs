@@ -21,6 +21,8 @@ namespace MySkype.WpfClient.ViewModels
         private readonly DispatcherTimer _timer;
         private TimeSpan _duration = TimeSpan.Zero;
         private bool _started;
+        private bool _paused;
+        private bool _muted;
 
         public bool Started
         {
@@ -35,6 +37,8 @@ namespace MySkype.WpfClient.ViewModels
         }
 
         public AsyncCommand CloseCommand { get; }
+        public AsyncCommand ToggleRecordingCommand { get; set; }
+        public AsyncCommand TogglePlayingCommand { get; set; }
 
         public CallWindowViewModel(Guid userId, User friend, WebSocketClient webSocketClient, RestSharpClient restClient, NotificationService notificationService, bool isCaller)
         {
@@ -46,7 +50,7 @@ namespace MySkype.WpfClient.ViewModels
             _isCaller = isCaller;
             Started = !isCaller;
 
-            _callService = new CallService(webSocketClient, restClient, Friend.Id);
+            _callService = new CallService(webSocketClient, Friend.Id);
 
             _timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 1) };
             _timer.Tick += (sender, e) => { Duration = Duration.Add(TimeSpan.FromSeconds(1)); };
@@ -54,6 +58,8 @@ namespace MySkype.WpfClient.ViewModels
             _notificationService.CallEnded += OnCallEnded;
 
             CloseCommand = new AsyncCommand(() => FinishCallAsync(false));
+            TogglePlayingCommand = new AsyncCommand(TogglePlayingAsync);
+            ToggleRecordingCommand = new AsyncCommand(ToggleRecordingAsync);
 
             if (Started)
             {
@@ -65,11 +71,45 @@ namespace MySkype.WpfClient.ViewModels
             }
         }
 
+        public async Task TogglePlayingAsync()
+        {
+            await Task.Run(() =>
+            {
+                if (_paused)
+                {
+                    _callService.ContinuePlaying();
+                }
+                else
+                {
+                    _callService.PausePlaying();
+                }
+
+                _paused = !_paused;
+            });
+        }
+
+        public async Task ToggleRecordingAsync()
+        {
+            await Task.Run(() =>
+            {
+                if (_muted)
+                {
+                    _callService.ContinueRecording();
+                }
+                else
+                {
+                    _callService.PauseRecording();
+                }
+
+                _muted = !_muted;
+            });
+        }
+
         private async void OnCallEnded(object sender, MyEventArgs e)
         {
             await FinishCallAsync(true);
         }
-        
+
         private async void OnCallRejected(object sender, MyEventArgs e)
         {
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(RequestClose));
@@ -115,7 +155,7 @@ namespace MySkype.WpfClient.ViewModels
                 _timer.Stop();
 
             if (!requested)
-                _webSocketClient.SendMessage(Friend.Id, MessageType.CallEnded);
+                _webSocketClient.SendNotificationAsync(Friend.Id, NotificationType.CallEnded);
 
             _callService.StopCall();
 

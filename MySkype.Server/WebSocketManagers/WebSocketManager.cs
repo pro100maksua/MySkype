@@ -32,9 +32,27 @@ namespace MySkype.Server.WebSocketManagers
         {
             var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-            var message = JsonConvert.DeserializeObject<Message>(json);
-            message.SenderId = id;
+            var message = JsonConvert.DeserializeObject<MessageBase>(json);
 
+            if (message.MessageType == MessageType.Data)
+            {
+                var data = JsonConvert.DeserializeObject<Data>(json);
+                await SendBytesAsync(data.TargetId, data.Bytes);
+
+                return;
+            }
+
+            switch (message.MessageType)
+            {
+                case MessageType.Notification:
+                    message = JsonConvert.DeserializeObject<Notification>(json);
+                    break;
+                case MessageType.Message:
+                    message = JsonConvert.DeserializeObject<Message>(json);
+                    break;
+            }
+
+            message.SenderId = id;
             await SendMessageAsync(message);
         }
 
@@ -48,7 +66,7 @@ namespace MySkype.Server.WebSocketManagers
             });
         }
 
-        public async Task SendMessageAsync(Message message)
+        public async Task SendMessageAsync(MessageBase message)
         {
             var targetSocket = _connectionManager.Get(message.TargetId);
 

@@ -39,15 +39,10 @@ namespace MySkype.WpfClient.ViewModels
             {
                 OnCloseRequested(callAccepted);
 
-                var messageType = callAccepted ? MessageType.CallConfirmed : MessageType.CallRejected;
+                var messageType = callAccepted ? NotificationType.CallConfirmed : NotificationType.CallRejected;
 
-                _webSocketClient.SendMessage(Caller.Id, messageType);
+                _webSocketClient.SendNotificationAsync(Caller.Id, messageType);
             }));
         }
-    }
-
-    public class CloseEventArgs : EventArgs
-    {
-        public bool CallAccepted { get; set; }
     }
 }

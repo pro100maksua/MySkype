@@ -99,6 +99,15 @@ namespace MySkype.WpfClient.Services
             await _restClient.ExecuteTaskAsync(request);
         }
 
+        public async Task SendMessageAsync(Guid friendId, string message)
+        {
+            var request = new RestRequest("/api/user/friends/{friendId}/message", Method.POST);
+            request.AddUrlSegment("friendId", friendId);
+            request.AddJsonBody(message);
+
+            await _restClient.ExecuteTaskAsync(request);
+        }
+
         public async Task<List<Call>> GetUserCallsAsync()
         {
             var request = new RestRequest("/api/calls/", Method.GET);
@@ -140,7 +149,7 @@ namespace MySkype.WpfClient.Services
 
         public async Task<bool> CheckIfUserOnlineAsync(Guid userId)
         {
-            var request = new RestRequest("/api/users/{userId}/isOnline", Method.POST);
+            var request = new RestRequest("/api/users/{userId}/isOnline", Method.GET);
             request.AddUrlSegment("userId", userId);
 
             var response = await _restClient.ExecuteTaskAsync<bool>(request);

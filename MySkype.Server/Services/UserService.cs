@@ -71,57 +71,7 @@ namespace MySkype.Server.Services
             return await _usersRepository.UserExistsAsync(login);
         }
 
-        public async Task<IEnumerable<ResponseUserDto>> GetFriendsAsync(Guid id)
-        {
-            var user = await _usersRepository.GetAsync(id);
-            var friends = await _usersRepository.GetFriendsAsync(user);
-
-            var tasks = friends.Select(async f =>
-            {
-                var dto = _mapper.Map<User, ResponseUserDto>(f);
-                dto.Avatar = await _photoRepository.GetAsync(f.AvatarId);
-                return dto;
-            }).ToList();
-
-            var friendDtos = await Task.WhenAll(tasks);
-
-            return friendDtos;
-        }
-
-        public async Task<bool> SendFriendRequestAsync(Guid id, Guid friendId)
-        {
-            var isFriend = await _usersRepository.CheckIfFriendAsync(id, friendId);
-
-            if (isFriend) return false;
-
-            var message = new Message
-            {
-                MessageType = MessageType.FriendRequest,
-                SenderId = id,
-                TargetId = friendId
-            };
-
-            await _webSocketManager.SendMessageAsync(message);
-
-            await _usersRepository.AddFriendRequestAsync(friendId, id);
-
-            return true;
-        }
-        public async Task<bool> ConfirmFriendRequestAsync(Guid id, Guid friendId)
-        {
-            var alreadyFriend = await _usersRepository.CheckIfFriendAsync(id, friendId);
-
-            if (alreadyFriend) return false;
-
-            await _usersRepository.AddFriendAsync(id, friendId);
-            await _usersRepository.AddFriendAsync(friendId, id);
-            await _usersRepository.RemoveFriendRequestAsync(id, friendId);
-
-            return true;
-
-        }
-
-        public async Task<bool> CheckIfUserIsOnlineAsync(Guid userId)
+        public async Task<bool> UserIsOnlineAsync(Guid userId)
         {
             return await _webSocketManager.CheckIfUserIsOnlineAsync(userId);
         }

@@ -17,7 +17,8 @@ namespace MySkype.WpfClient.Services
             add => _client.DataReceived += value;
             remove => _client.DataReceived -= value;
         }
-        
+        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+
         public WebSocketClient(NotificationService notificationService, string token)
         {
             _notificationService = notificationService;
@@ -40,36 +41,87 @@ namespace MySkype.WpfClient.Services
         {
             await Task.Run(() =>
             {
-                var message = JsonConvert.DeserializeObject<Message>(e.Message);
+                var messageBase = JsonConvert.DeserializeObject<MessageBase>(e.Message);
 
-                switch (message.MessageType)
+                switch (messageBase.MessageType)
                 {
-                    case MessageType.FriendRequest:
-                        _notificationService.NotifyFriendRequest(message.SenderId);
+                    case MessageType.Notification:
+                        var notification = JsonConvert.DeserializeObject<Notification>(e.Message);
+                        HandleNotification(notification);
                         break;
-                    case MessageType.CallRequest:
-                        _notificationService.NotifyCallRequest(message.SenderId);
+                    case MessageType.Message:
+                        var message = JsonConvert.DeserializeObject<Message>(e.Message);
+                        HandleMessage(message);
                         break;
-                    case MessageType.CallConfirmed:
-                        _notificationService.NotifyCallAccepted(message.SenderId);
-                        break;
-                    case MessageType.CallRejected:
-                        _notificationService.NotifyCallRejected(message.SenderId);
-                        break;
-                    case MessageType.CallEnded:
-                        _notificationService.NotifyCallEnded(message.SenderId);
-                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             });
         }
 
-        public void SendMessage(Guid targetId, MessageType messageType)
+        public async Task SendNotificationAsync(Guid targetId, NotificationType notificationType)
         {
-            var message = new Message { TargetId = targetId, MessageType = messageType };
+            await Task.Run(() =>
+            {
+                var notification = new Notification { TargetId = targetId, NotificationType = notificationType };
 
-            var json = JsonConvert.SerializeObject(message);
+                var json = JsonConvert.SerializeObject(notification);
 
-            _client.Send(json);
+                _client.Send(json);
+            });
+        }
+
+        public async Task SendMessageAsync(Guid targetId, string content)
+        {
+            await Task.Run(() =>
+            {
+                var message = new Message { TargetId = targetId, Content = content };
+
+                var json = JsonConvert.SerializeObject(message);
+
+                _client.Send(json);
+            });
+        }
+
+        public async Task SendDataAsync(Guid targetId, byte[] bytes)
+        {
+            await Task.Run(() =>
+            {
+                var data = new Data { TargetId = targetId, Bytes = bytes };
+
+                var json = JsonConvert.SerializeObject(data);
+
+                _client.Send(json);
+            });
+        }
+
+        private void HandleNotification(Notification notification)
+        {
+            switch (notification.NotificationType)
+            {
+                case NotificationType.FriendRequest:
+                    _notificationService.NotifyFriendRequest(notification.SenderId);
+                    break;
+                case NotificationType.CallRequest:
+                    _notificationService.NotifyCallRequest(notification.SenderId);
+                    break;
+                case NotificationType.CallConfirmed:
+                    _notificationService.NotifyCallAccepted(notification.SenderId);
+                    break;
+                case NotificationType.CallRejected:
+                    _notificationService.NotifyCallRejected(notification.SenderId);
+                    break;
+                case NotificationType.CallEnded:
+                    _notificationService.NotifyCallEnded(notification.SenderId);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        private void HandleMessage(Message message)
+        {
+            MessageReceived?.Invoke(this, new MessageReceivedEventArgs(message.Content));
         }
     }
 }
+

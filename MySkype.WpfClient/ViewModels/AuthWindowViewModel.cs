@@ -141,9 +141,4 @@ namespace MySkype.WpfClient.ViewModels
             return regex.IsMatch(email);
         }
     }
-
-    public class AuthEventArgs : EventArgs
-    {
-        public string Token { get; set; }
-    }
 }

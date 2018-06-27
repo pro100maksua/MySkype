@@ -76,6 +76,7 @@ namespace MySkype.Server
             services.AddTransient<IUsersRepository, UsersRepository>();
             services.AddTransient<IPhotoRepository, PhotoRepository>();
             services.AddTransient<ICallsRepository, CallsRepository>();
+            services.AddTransient<UserFriendsService>();
             services.AddTransient<CallsService>();
             services.AddTransient<PhotoService>();
             services.AddTransient<UserService>();

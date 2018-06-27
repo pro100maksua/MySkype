@@ -363,7 +363,7 @@ namespace MySkype.WpfClient.ViewModels
                 return;
             }
 
-            _webSocketClient.SendMessage(Friend.Id, MessageType.CallRequest);
+            _webSocketClient.SendNotificationAsync(Friend.Id, NotificationType.CallRequest);
 
             await ShowCallWindowAsync(Friend, isCaller: true);
 

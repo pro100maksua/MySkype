@@ -1,4 +1,5 @@
 ﻿using System;
+using MySkype.WpfClient.Models;
 
 namespace MySkype.WpfClient.Services
 {

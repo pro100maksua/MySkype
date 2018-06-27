@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MySkype.WpfClient.Services
+namespace MySkype.WpfClient.Models
 {
     public class MyEventArgs : EventArgs
     {

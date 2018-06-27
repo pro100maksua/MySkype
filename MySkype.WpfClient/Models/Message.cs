@@ -1,15 +1,12 @@
-﻿using System;
-
-namespace MySkype.WpfClient.Models
+﻿namespace MySkype.WpfClient.Models
 {
-    public class Message
+    public class Message : MessageBase
     {
-        public Guid SenderId { get; set; }
+        public string Content { get; set; }
 
-        public Guid TargetId { get; set; }
-
-        public string SenderName { get; set; }
-
-        public MessageType MessageType { get; set; }
+        public Message()
+        {
+            MessageType = MessageType.Message;
+        }
     }
 }

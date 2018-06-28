@@ -328,7 +328,7 @@ namespace MySkype.WpfClient.ViewModels
         {
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                var callView = new CallWindowView(User.Id, friend, _webSocketClient, _restClient, _notificationService,
+                var callView = new CallWindowView(User, friend, _webSocketClient, _restClient, _notificationService,
                     isCaller);
 
                 callView.ShowDialog();

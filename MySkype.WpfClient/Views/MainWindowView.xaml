@@ -48,7 +48,7 @@
                 </StackPanel>
             </ContentControl>
 
-            <TextBox Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Path=SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="SearchTextBox">
+            <TextBox Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Path=SearchQuery, UpdateSourceTrigger=PropertyChanged}" Name="SearchTextBox">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter" Command="{Binding Path=SearchCommand}"/>
                 </TextBox.InputBindings>

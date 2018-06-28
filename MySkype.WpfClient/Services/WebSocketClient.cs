@@ -17,7 +17,8 @@ namespace MySkype.WpfClient.Services
             add => _client.DataReceived += value;
             remove => _client.DataReceived -= value;
         }
-        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+
+        public event EventHandler<ChatMessageReceivedEventArgs> MessageReceived;
 
         public WebSocketClient(NotificationService notificationService, string token)
         {
@@ -118,10 +119,22 @@ namespace MySkype.WpfClient.Services
                     throw new ArgumentOutOfRangeException();
             }
         }
+
         private void HandleMessage(Message message)
         {
-            MessageReceived?.Invoke(this, new MessageReceivedEventArgs(message.Content));
+            MessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs
+            {
+                Content = message.Content,
+                SenderId = message.SenderId
+            });
         }
+
+    }
+
+    public class ChatMessageReceivedEventArgs : EventArgs
+    {
+        public string Content { get; set; }
+
+        public Guid SenderId { get; set; }
     }
 }
-

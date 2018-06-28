@@ -7,11 +7,11 @@ namespace MySkype.WpfClient.Views
 {
     public partial class CallWindowView
     {
-        public CallWindowView(Guid userId, User friend, WebSocketClient webSocketClient, RestSharpClient restClient, NotificationService notificationService, bool isCaller)
+        public CallWindowView(User user, User friend, WebSocketClient webSocketClient, RestSharpClient restClient, NotificationService notificationService, bool isCaller)
         {
             InitializeComponent();
 
-            var viewModel = new CallWindowViewModel(userId, friend, webSocketClient, restClient, notificationService, isCaller);
+            var viewModel = new CallWindowViewModel(user, friend, webSocketClient, restClient, notificationService, isCaller);
             DataContext = viewModel;
 
             viewModel.CloseRequested += (sender, e) => Close();

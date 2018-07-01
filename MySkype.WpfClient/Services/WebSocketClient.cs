@@ -20,11 +20,11 @@ namespace MySkype.WpfClient.Services
 
         public event EventHandler<ChatMessageReceivedEventArgs> MessageReceived;
 
-        public WebSocketClient(NotificationService notificationService, string token)
+        public WebSocketClient(NotificationService notificationService, string token, string route)
         {
             _notificationService = notificationService;
 
-            _client = new WebSocket("ws://localhost:5000", version: WebSocketVersion.Rfc6455,
+            _client = new WebSocket($"ws://localhost:5000/{route}", version: WebSocketVersion.Rfc6455,
                 customHeaderItems: new List<KeyValuePair<string, string>>
                 {
                     new KeyValuePair<string, string>("Authorization", "Bearer " + token)
@@ -128,7 +128,6 @@ namespace MySkype.WpfClient.Services
                 SenderId = message.SenderId
             });
         }
-
     }
 
     public class ChatMessageReceivedEventArgs : EventArgs

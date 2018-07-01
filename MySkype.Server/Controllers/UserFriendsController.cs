@@ -12,10 +12,10 @@ namespace MySkype.Server.Controllers
     [ApiController]
     public class UserFriendsController : ControllerBase
     {
-        private readonly IWebSocketManager _webSocketManager;
+        private readonly WebSocketManager _webSocketManager;
         private readonly UserFriendsService _userFriendsService;
 
-        public UserFriendsController(IWebSocketManager webSocketManager, UserFriendsService userFriendsService)
+        public UserFriendsController(WebSocketManager webSocketManager, UserFriendsService userFriendsService)
         {
             _webSocketManager = webSocketManager;
             _userFriendsService = userFriendsService;

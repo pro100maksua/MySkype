@@ -37,6 +37,8 @@ namespace MySkype.WpfClient.ViewModels
         private List<IGrouping<DateTime, CallRepresentation>> _friendCalls =
             new List<IGrouping<DateTime, CallRepresentation>>();
 
+        private string _token;
+
 
         public ObservableCollection<User> Contacts
         {
@@ -179,14 +181,14 @@ namespace MySkype.WpfClient.ViewModels
         {
             var authWindow = new AuthWindowView();
 
-            var token = string.Empty;
+
             authWindow.ShowDialog();
-            token = authWindow.Token;
+            _token = authWindow.Token;
 
-            _restClient = new RestSharpClient(token);
-            _webSocketClient = new WebSocketClient(_notificationService, token);
+            _restClient = new RestSharpClient(_token);
+            _webSocketClient = new WebSocketClient(_notificationService, _token, "general");
 
-            var jwtToken = new JwtSecurityToken(token);
+            var jwtToken = new JwtSecurityToken(_token);
             var userId = new Guid(jwtToken.Claims.FirstOrDefault(c => c.Type.Equals("sid"))?.Value);
             var user = await _restClient.GetUserAsync(userId);
 
@@ -328,7 +330,7 @@ namespace MySkype.WpfClient.ViewModels
         {
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                var callView = new CallWindowView(User, friend, _webSocketClient, _restClient, _notificationService,
+                var callView = new CallWindowView(User, friend, _webSocketClient, _token, _restClient, _notificationService,
                     isCaller);
 
                 callView.ShowDialog();

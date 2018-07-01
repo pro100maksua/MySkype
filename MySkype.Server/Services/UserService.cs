@@ -12,13 +12,13 @@ namespace MySkype.Server.Services
 {
     public class UserService
     {
-        private readonly IWebSocketManager _webSocketManager;
+        private readonly WebSocketManager _webSocketManager;
         private readonly IUsersRepository _usersRepository;
         private readonly PhotoService _photoService;
         private readonly IPhotoRepository _photoRepository;
         private readonly IMapper _mapper;
 
-        public UserService(IWebSocketManager webSocketManager, IUsersRepository usersRepository,
+        public UserService(WebSocketManager webSocketManager, IUsersRepository usersRepository,
             PhotoService photoService, IPhotoRepository photoRepository, IMapper mapper)
         {
             _webSocketManager = webSocketManager;

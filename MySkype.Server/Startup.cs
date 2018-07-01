@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ using MySkype.Server.Repositories;
 using MySkype.Server.Services;
 using MySkype.Server.WebSocketManagers;
 using Swashbuckle.AspNetCore.Swagger;
+using WebSocketManager = MySkype.Server.WebSocketManagers.WebSocketManager;
 
 namespace MySkype.Server
 {
@@ -83,7 +85,8 @@ namespace MySkype.Server
             services.AddTransient<IdentityService>();
             services.AddTransient<MongoContext>();
 
-            services.AddSingleton<IWebSocketManager, WebSocketManager>();
+            services.AddSingleton<WebSocketManager>();
+            services.AddSingleton<WebSocketVideoManager>();
             services.AddTransient<WebSocketConnectionManager>();
 
             services.AddAutoMapper();
@@ -103,7 +106,10 @@ namespace MySkype.Server
             app.UseAuthentication();
             app.UseCors("Policy");
             app.UseWebSockets();
-            app.UseMiddleware<WebSocketMiddleware>(serviceProvider.GetService<IWebSocketManager>());
+            app.Map("/general",
+                builder => builder.UseMiddleware<WebSocketMiddleware>(serviceProvider.GetService<WebSocketManager>()));
+            app.Map("/video",
+                builder => builder.UseMiddleware<WebSocketMiddleware>(serviceProvider.GetService<WebSocketVideoManager>()));
             app.UseSwagger();
             app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", ""); });
             app.UseHttpsRedirection();

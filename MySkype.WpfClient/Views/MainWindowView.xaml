@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:local="clr-namespace:MySkype.WpfClient.ValueConverters"
+        xmlns:uc="clr-namespace:MySkype.WpfClient.UserControls"
         mc:Ignorable="d"
         Icon="/Assets/avalonia-logo.ico"
         Title="MySkype" ResizeMode="NoResize" Height="620" Width="1000">
@@ -34,11 +35,7 @@
                     <Button Width="60" Height="60" Command="{Binding ChoosePhotoCommand}">
                         <Button.Template>
                             <ControlTemplate>
-                                <Ellipse Height="60" Width="60">
-                                    <Ellipse.Fill>
-                                        <ImageBrush  ImageSource="{Binding Path=User.Avatar.Bitmap}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
+                                <uc:PhotoUserControl Radius="60" Source="{Binding Path=User.Avatar.Bitmap}"/>
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
@@ -67,11 +64,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Ellipse Height="60" Width="60">
-                                    <Ellipse.Fill>
-                                        <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=Avatar.Bitmap}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
+                                <uc:PhotoUserControl Radius="60" Source="{Binding Path=Avatar.Bitmap}"/>
                                 <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" Width="220" Height="50" FontSize="16" Text="{Binding Path=FullName}"/>
                             </StackPanel>
                         </DataTemplate>
@@ -84,11 +77,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Ellipse Height="60" Width="60">
-                                    <Ellipse.Fill>
-                                        <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=UserAvatar}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
+                                <uc:PhotoUserControl Radius="60" Source="{Binding Path=UserAvatar}"/>
                                 <StackPanel>
                                     <TextBlock FontSize="16" Text="{Binding Path=UserFullName}"/>
                                     <TextBlock Text="{Binding Path=StartTime}"/>
@@ -107,7 +96,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Width="230" Height="40" FontSize="24" Text="{Binding SenderName}"/>
                                 <Button Width="40" Height="40"
-                        Command="{Binding DataContext.AddFriendCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
+                        Command="{Binding Path=AddFriendCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
                         CommandParameter="{Binding SenderId}">
                                     <Button.Template>
                                         <ControlTemplate>
@@ -133,12 +122,7 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <Ellipse Height="60" Width="60">
-                            <Ellipse.Fill>
-                                <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=Avatar.Bitmap}"/>
-                            </Ellipse.Fill>
-                        </Ellipse>
-
+                        <uc:PhotoUserControl Radius="60" Source="{Binding Path=Avatar.Bitmap}"/>
                         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" Text="{Binding FullName}"/>
                     </StackPanel>
                 </DataTemplate>
@@ -148,11 +132,7 @@
         <StackPanel Grid.Column="1" Grid.RowSpan="2"
                     Visibility="{Binding Path=IsFriendSet, Converter={StaticResource ReverseVisibilityConverter}}">
             <TextBlock HorizontalAlignment="Center" Text="{Binding User.FirstName}" />
-            <Ellipse Height="100" Width="100">
-                <Ellipse.Fill>
-                    <ImageBrush  Stretch="Fill" ImageSource="{Binding User.Avatar.Bitmap}"/>
-                </Ellipse.Fill>
-            </Ellipse>
+            <uc:PhotoUserControl Radius="100" Source="{Binding Path=User.Avatar.Bitmap}"/>
         </StackPanel>
 
         <Grid Visibility="{Binding Path=IsFriendSet,Converter={StaticResource VisibilityConverter}}" Name="Large" Grid.Column="1" Grid.RowSpan="2">

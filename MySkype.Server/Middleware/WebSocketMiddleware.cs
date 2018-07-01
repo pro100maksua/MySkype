@@ -40,7 +40,7 @@ namespace MySkype.Server.Middleware
 
         private async Task ReceiveAsync(Guid id, WebSocket socket)
         {
-            var buffer = new byte[4 * 1024];
+            var buffer = new byte[50 * 1024];
 
             while (socket.State == WebSocketState.Open)
             {

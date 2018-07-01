@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MySkype.WpfClient.Views"
+        xmlns:uc="clr-namespace:MySkype.WpfClient.UserControls"
         mc:Ignorable="d"
     Title="CallWindowView" ResizeMode="NoResize" Width="700" Height="550">
     <Window.Resources>
@@ -26,14 +26,17 @@
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Height="25" Width="25">
-                            <Ellipse.Fill>
-                                <ImageBrush  Stretch="Fill" ImageSource="{Binding Path=UserAvatar}"/>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <TextBlock Text="{Binding Path=Content}" TextWrapping="Wrap"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="35"/>
+                            <ColumnDefinition Width="165"/>
+                        </Grid.ColumnDefinitions>
+                        <uc:PhotoUserControl VerticalAlignment="Top" Grid.Column="0" Radius="25" Source="{Binding Path=UserAvatar}"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding Path=UserName}" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Path=Content}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
@@ -43,59 +46,40 @@
             </TextBox.InputBindings>
         </TextBox>
         <StackPanel Grid.Column="1" Grid.RowSpan="2" Background="DarkSlateGray">
-            <Ellipse Margin="0,10" Height="100" Width="100" HorizontalAlignment="Center">
-                <Ellipse.Fill>
-                    <ImageBrush ImageSource="{Binding Friend.Avatar.Bitmap}"/>
-                </Ellipse.Fill>
-            </Ellipse>
+            <uc:PhotoUserControl Margin="0,10" HorizontalAlignment="Center" Radius="100" Source="{Binding Path=Friend.Avatar.Bitmap}"/>
             <TextBlock HorizontalAlignment="Center"  FontSize="24" Text="{Binding Friend.FullName}"/>
             <TextBlock Visibility="{Binding Started, Converter={StaticResource VisibilityConverter}}" HorizontalAlignment="Center"  Text="{Binding Duration}"/>
             <StackPanel Margin="0,20" HorizontalAlignment="Center" Orientation="Horizontal">
                 <Button Margin="10,10,10,10" Command="{Binding Path=TogglePlayingCommand}">
                     <Button.Template>
                         <ControlTemplate>
-                            <Ellipse Height="40" Width="40">
-                                <Ellipse.Fill>
-                                    <ImageBrush ImageSource="/Assets/unmute.png"/>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <uc:PhotoUserControl Radius="40" Source="/Assets/unmute.png"/>
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
                 <Button Margin="10,10,10,10" Command="{Binding Path=ToggleRecordingCommand}">
                     <Button.Template>
                         <ControlTemplate>
-                            <Ellipse Height="40" Width="40">
-                                <Ellipse.Fill>
-                                    <ImageBrush ImageSource="/Assets/micro.png"/>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <uc:PhotoUserControl Radius="40" Source="/Assets/micro.png"/>
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
-                <Button Margin="10,10,10,10">
+                <Button Margin="10,10,10,10" Command="{Binding ToggleVideoCommand}">
                     <Button.Template>
                         <ControlTemplate>
-                            <Ellipse Height="40" Width="40">
-                                <Ellipse.Fill>
-                                    <ImageBrush ImageSource="/Assets/vcall.png"/>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <uc:PhotoUserControl Radius="40" Source="/Assets/vcall.png"/>
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
                 <Button Margin="10,10,10,10" Command="{Binding CloseCommand}">
                     <Button.Template>
                         <ControlTemplate>
-                            <Ellipse Height="40" Width="40">
-                                <Ellipse.Fill>
-                                    <ImageBrush ImageSource="/Assets/endCall.png"/>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <uc:PhotoUserControl Radius="40" Source="/Assets/endCall.png"/>
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
             </StackPanel>
+            <Image Width="322" Height="240" Source="{Binding Path=Frame}"/>
         </StackPanel>
         <Button Grid.Column="1" Grid.RowSpan="2" Height="30" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" Content="Chat" Background="DarkKhaki" 
                 Command="{Binding Path=ToggleChatCommand}">

@@ -14,10 +14,10 @@ namespace MySkype.Server.Services
     {
         private readonly IUsersRepository _usersRepository;
         private readonly IPhotoRepository _photoRepository;
-        private readonly IWebSocketManager _webSocketManager;
+        private readonly WebSocketManager _webSocketManager;
         private readonly IMapper _mapper;
 
-        public UserFriendsService(IUsersRepository usersRepository, IPhotoRepository photoRepository, IMapper mapper, IWebSocketManager webSocketManager)
+        public UserFriendsService(IUsersRepository usersRepository, IPhotoRepository photoRepository, IMapper mapper, WebSocketManager webSocketManager)
         {
             _usersRepository = usersRepository;
             _photoRepository = photoRepository;

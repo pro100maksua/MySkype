@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -27,48 +29,99 @@ namespace MySkype.Server.WebSocketManagers
             await _connectionManager.RemoveSocketAsync(id);
         }
 
-
         public async Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer)
         {
             var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
             var message = JsonConvert.DeserializeObject<MessageBase>(json);
 
+
             if (message.MessageType == MessageType.Data)
             {
                 var data = JsonConvert.DeserializeObject<Data>(json);
-                await SendBytesAsync(data.TargetId, data.Bytes);
+                await SendBytesAsync(id, data.Bytes);
 
                 return;
             }
 
-            switch (message.MessageType)
+            if (message.MessageType == MessageType.Notification)
             {
-                case MessageType.Notification:
-                    message = JsonConvert.DeserializeObject<Notification>(json);
-                    break;
-                case MessageType.Message:
-                    message = JsonConvert.DeserializeObject<Message>(json);
-                    break;
-            }
+                var notification = JsonConvert.DeserializeObject<Notification>(json);
 
-            message.SenderId = id;
-            await SendMessageAsync(message);
+                notification.SenderId = id;
+                if (notification.NotificationType == NotificationType.CallConfirmed)
+                {
+                    var call = _connectionManager.GetCall(notification.TargetId);
+
+                    if (call == null)
+                        _connectionManager.StartCall(notification.TargetId);
+
+                    _connectionManager.AddCallFriend(notification.TargetId, id);
+
+                    call = _connectionManager.GetCall(notification.TargetId).Where(userId => userId != id).ToHashSet();
+
+                    foreach (var userId in call)
+                    {
+                        notification.TargetId = userId;
+                        await SendAsync(notification);
+                    }
+                }
+                else if (notification.NotificationType == NotificationType.CallEnded)
+                {
+                    var call = _connectionManager.GetCall(notification.SenderId);
+
+                    foreach (var userId in call)
+                    {
+                        notification.TargetId = userId;
+                        await SendAsync(notification);
+                    }
+
+                    _connectionManager.RemoveCall(call);
+                }
+                else
+                {
+                    await SendAsync(notification);
+                }
+            }
+            else if (message.MessageType == MessageType.Message)
+            {
+                message = JsonConvert.DeserializeObject<Message>(json);
+                message.SenderId = id;
+                await SendMessageAsync(message);
+            }
+        }
+
+        private async Task SendMessageAsync(MessageBase message)
+        {
+            var call = _connectionManager.GetCall(message.SenderId);
+
+            foreach (var userId in call)
+            {
+                var targetSocket = _connectionManager.GetSocket(userId);
+
+                if (targetSocket != null)
+                {
+                    var json = JsonConvert.SerializeObject(message);
+
+                    await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
+                        WebSocketMessageType.Text, true, CancellationToken.None);
+                }
+            }
         }
 
         public async Task<bool> CheckIfUserIsOnlineAsync(Guid id)
         {
             return await Task.Run(() =>
             {
-                var targetSocket = _connectionManager.Get(id);
+                var targetSocket = _connectionManager.GetSocket(id);
 
                 return targetSocket != null && targetSocket.State == WebSocketState.Open;
             });
         }
 
-        public async Task SendMessageAsync(MessageBase message)
+        public async Task SendAsync(MessageBase message)
         {
-            var targetSocket = _connectionManager.Get(message.TargetId);
+            var targetSocket = _connectionManager.GetSocket(message.TargetId);
 
             if (targetSocket != null)
             {
@@ -79,15 +132,28 @@ namespace MySkype.Server.WebSocketManagers
             }
         }
 
-        public async Task SendBytesAsync(Guid targetId, byte[] data)
+        public async Task SendBytesAsync(Guid id, byte[] data)
         {
-            var targetSocket = _connectionManager.Get(targetId);
+            var call = _connectionManager.GetCall(id)?.Where(u => u != id);
 
-            if (targetSocket != null)
+            if (call != null)
             {
-                await targetSocket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary,
-                    true, CancellationToken.None);
+                foreach (var userId in call)
+                {
+                    var targetSocket = _connectionManager.GetSocket(userId);
+
+                    if (targetSocket != null)
+                    {
+                        await targetSocket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary,
+                            true, CancellationToken.None);
+                    }
+                }
             }
+        }
+
+        public IEnumerable<Guid> GetCallParticipants(Guid callId)
+        {
+            return _connectionManager.GetCall(callId);
         }
     }
 }

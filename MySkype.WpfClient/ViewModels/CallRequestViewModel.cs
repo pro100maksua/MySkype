@@ -35,13 +35,13 @@ namespace MySkype.WpfClient.ViewModels
 
         public async Task MakeDecision(bool callAccepted)
         {
-            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(async () =>
             {
                 OnCloseRequested(callAccepted);
 
                 var messageType = callAccepted ? NotificationType.CallConfirmed : NotificationType.CallRejected;
 
-                _webSocketClient.SendNotificationAsync(Caller.Id, messageType);
+                await _webSocketClient.SendNotificationAsync(Caller.Id, messageType);
             }));
         }
     }

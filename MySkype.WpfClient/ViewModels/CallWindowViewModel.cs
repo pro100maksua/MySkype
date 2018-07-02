@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -14,15 +15,13 @@ using MySkype.WpfClient.Models;
 using MySkype.WpfClient.Services;
 using Nito.Mvvm;
 using ReactiveUI;
-using WebSocket4Net;
 
 namespace MySkype.WpfClient.ViewModels
 {
     class CallWindowViewModel : ViewModelBase
     {
-        private readonly bool _isCaller;
         private readonly User _user;
-
+        private ObservableCollection<User> _participants;
         private readonly WebSocketClient _webSocketClient;
         private readonly RestSharpClient _restClient;
         private readonly NotificationService _notificationService;
@@ -37,9 +36,16 @@ namespace MySkype.WpfClient.ViewModels
         private string _message;
         private bool _isChatEnabled;
         private BitmapImage _frame;
-        private WebSocketClient _webSocketVideoClient;
+        private readonly WebSocketClient _webSocketVideoClient;
         private bool _videoPlaying;
+        private bool _isAddingFriendToCall;
+        private ObservableCollection<User> _friends = new ObservableCollection<User>();
 
+        private ObservableCollection<KeyValuePair<Guid, BitmapImage>> _frames =
+            new ObservableCollection<KeyValuePair<Guid, BitmapImage>>();
+        private User _chosenUser;
+
+        public bool IsCaller { get; }
         public bool Started
         {
             get => _started;
@@ -50,16 +56,41 @@ namespace MySkype.WpfClient.ViewModels
             get => _isChatEnabled;
             set => this.RaiseAndSetIfChanged(ref _isChatEnabled, value);
         }
+        public bool IsAddingFriendToCall
+        {
+            get => _isAddingFriendToCall;
+            set => this.RaiseAndSetIfChanged(ref _isAddingFriendToCall, value);
+        }
         public User Friend { get; }
+        public User ChosenUser
+        {
+            get => _chosenUser;
+            set => this.RaiseAndSetIfChanged(ref _chosenUser, value);
+        }
         public TimeSpan Duration
         {
             get => _duration;
             set => this.RaiseAndSetIfChanged(ref _duration, value);
         }
+        public ObservableCollection<User> Friends
+        {
+            get => _friends;
+            set => this.RaiseAndSetIfChanged(ref _friends, value);
+        }
         public ObservableCollection<ChatMessage> Messages
         {
             get => _messages;
             set => this.RaiseAndSetIfChanged(ref _messages, value);
+        }
+        public ObservableCollection<User> Participants
+        {
+            get => _participants;
+            set => this.RaiseAndSetIfChanged(ref _participants, value);
+        }
+        public ObservableCollection<KeyValuePair<Guid, BitmapImage>> Frames
+        {
+            get => _frames;
+            set => this.RaiseAndSetIfChanged(ref _frames, value);
         }
         public string Message
         {
@@ -78,16 +109,27 @@ namespace MySkype.WpfClient.ViewModels
         public AsyncCommand ToggleRecordingCommand { get; set; }
         public AsyncCommand TogglePlayingCommand { get; set; }
         public AsyncCommand ToggleVideoCommand { get; set; }
+        public AsyncCommand ShowFriendsCommand { get; set; }
+        public AsyncCommand AddFriendToCallCommand { get; set; }
 
-        public CallWindowViewModel(User user, User friend, WebSocketClient webSocketClient, string token, RestSharpClient restClient, NotificationService notificationService, bool isCaller)
+        public CallWindowViewModel(User user, List<User> friends, User friend, WebSocketClient webSocketClient, string token,
+            RestSharpClient restClient, NotificationService notificationService, bool isCaller)
         {
-            _videoPlaying = true;
-            _user = user;
-            _webSocketClient = webSocketClient;
-            _restClient = restClient;
-            _notificationService = notificationService;
             Friend = friend;
-            _isCaller = isCaller;
+            _restClient = restClient;
+            IsCaller = isCaller;
+            _user = user;
+
+            GetParticipantsAsync().ContinueWith(t =>
+            {
+                return ChosenUser = Participants.FirstOrDefault(p => p.Id != user.Id);
+            });
+
+            _videoPlaying = true;
+            _webSocketClient = webSocketClient;
+            _notificationService = notificationService;
+            Friends = new ObservableCollection<User>(friends);
+
             Started = !isCaller;
 
             _callService = new CallService(webSocketClient, Friend.Id);
@@ -100,6 +142,7 @@ namespace MySkype.WpfClient.ViewModels
             _webSocketVideoClient.DataReceived += FrameReceived;
             _notificationService.CallRejected += OnCallRejected;
             _notificationService.CallEnded += OnCallEnded;
+            _notificationService.CallAccepted += OnFriendAddedToCall;
 
             _webCam = new VideoCaptureDevice(new FilterInfoCollection(FilterCategory.VideoInputDevice)[0]
                 .MonikerString);
@@ -108,11 +151,15 @@ namespace MySkype.WpfClient.ViewModels
             ToggleChatCommand = new AsyncCommand(async () => await
                 Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(() => IsChatEnabled = !IsChatEnabled)));
+            ShowFriendsCommand = new AsyncCommand(async () => await
+                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                    new Action(() => IsAddingFriendToCall = true)));
             SendMessageCommand = new AsyncCommand(SendMessageAsync);
             CloseCommand = new AsyncCommand(() => FinishCallAsync(false));
             TogglePlayingCommand = new AsyncCommand(TogglePlayingAsync);
             ToggleRecordingCommand = new AsyncCommand(ToggleRecordingAsync);
             ToggleVideoCommand = new AsyncCommand(ToggleVideoAsync);
+            AddFriendToCallCommand = new AsyncCommand(AddFriendToCallAsync);
 
             if (Started)
             {
@@ -124,8 +171,49 @@ namespace MySkype.WpfClient.ViewModels
             }
         }
 
+        private async Task GetParticipantsAsync()
+        {
+            _participants = new ObservableCollection<User> { _user };
+
+            if (!IsCaller)
+            {
+                var participantIds = await _restClient.GetCallParticipantsAsync(Friend.Id);
+
+                foreach (var id in participantIds)
+                {
+                    if (_user.Id == id) continue;
+
+                    var user = Friends.FirstOrDefault(f => f.Id == id);
+
+                    Participants.Add(user);
+                }
+            }
+        }
+
+        private void OnFriendAddedToCall(object sender, MyEventArgs e)
+        {
+            var friend = Friends.FirstOrDefault(f => f.Id == e.SenderId);
+
+            Application.Current.Dispatcher.Invoke(() => Participants.Add(friend));
+
+            if (ChosenUser == null)
+                ChosenUser = friend;
+        }
+
+        private async Task AddFriendToCallAsync(object arg)
+        {
+            if (arg is User friend)
+            {
+                IsAddingFriendToCall = false;
+
+                await _webSocketClient.SendNotificationAsync(friend.Id, NotificationType.CallRequest);
+            }
+        }
+
         private void FrameReceived(object sender, DataReceivedEventArgs e)
         {
+            //if (ChosenUser == null || ChosenUser.Id != e.SenderId) return;
+
             var image = new BitmapImage();
 
             image.BeginInit();
@@ -135,7 +223,20 @@ namespace MySkype.WpfClient.ViewModels
 
             image.Freeze();
 
-            Application.Current.Dispatcher.Invoke(() => Frame = image);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var pair = Frames.FirstOrDefault(p => p.Key == e.SenderId);
+
+                if (pair.Equals(default(KeyValuePair<Guid, BitmapImage>)))
+                {
+                    Frames.Add(new KeyValuePair<Guid, BitmapImage>(e.SenderId, image));
+                }
+                else
+                {
+                    var index = Frames.IndexOf(pair);
+                    Frames[index] = new KeyValuePair<Guid, BitmapImage>(e.SenderId, image);
+                }
+            });
         }
 
         private async void NewWebCamFrame(object sender, NewFrameEventArgs eventargs)
@@ -144,14 +245,19 @@ namespace MySkype.WpfClient.ViewModels
             {
                 var memory = new MemoryStream();
                 bitmap.Save(memory, ImageFormat.Jpeg);
-                await _webSocketVideoClient.SendDataAsync(Friend.Id, memory.ToArray());
+                var bytes = memory.ToArray();
+
+                var friends = _participants.Where(u => u.Id != _user.Id);
+                foreach (var user in friends)
+                {
+                    await _webSocketVideoClient.SendDataAsync(user.Id, bytes);
+                }
             }
         }
 
         private async Task SendMessageAsync()
         {
             await _webSocketClient.SendMessageAsync(Friend.Id, Message);
-            await _webSocketClient.SendMessageAsync(_user.Id, Message);
 
             Message = string.Empty;
         }
@@ -160,16 +266,9 @@ namespace MySkype.WpfClient.ViewModels
         {
             var chatMessage = new ChatMessage { Content = e.Content };
 
-            if (_user.Id == e.SenderId)
-            {
-                chatMessage.UserName = _user.FirstName;
-                chatMessage.UserAvatar = _user.Avatar.Bitmap;
-            }
-            else if (Friend.Id == e.SenderId)
-            {
-                chatMessage.UserName = Friend.FirstName;
-                chatMessage.UserAvatar = Friend.Avatar.Bitmap;
-            }
+            var user = _participants.FirstOrDefault(p => p.Id == e.SenderId);
+            chatMessage.UserName = user.FirstName;
+            chatMessage.UserAvatar = user.Avatar.Bitmap;
 
             await Application.Current.Dispatcher.BeginInvoke(new Action(() => { Messages.Add(chatMessage); }));
         }
@@ -190,7 +289,6 @@ namespace MySkype.WpfClient.ViewModels
                 _paused = !_paused;
             });
         }
-
 
         private async Task ToggleVideoAsync()
         {
@@ -275,6 +373,10 @@ namespace MySkype.WpfClient.ViewModels
 
         public async Task StopCallAsync(bool requested)
         {
+            _webSocketClient.MessageReceived -= OnMessageReceived;
+
+            _callService.StopCall();
+
             if (_webCam.IsRunning) _webCam.SignalToStop();
 
             if (_timer.IsEnabled) _timer.Stop();
@@ -282,9 +384,7 @@ namespace MySkype.WpfClient.ViewModels
             if (!requested)
                 await _webSocketClient.SendNotificationAsync(Friend.Id, NotificationType.CallEnded);
 
-            _callService.StopCall();
-
-            if (_isCaller)
+            if (IsCaller)
                 SaveCallInfo();
         }
 

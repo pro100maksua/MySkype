@@ -55,7 +55,7 @@ namespace MySkype.Server.Services
                 TargetId = friendId
             };
 
-            await _webSocketManager.SendMessageAsync(notification);
+            await _webSocketManager.SendAsync(notification);
 
             await _usersRepository.AddFriendRequestAsync(friendId, id);
 

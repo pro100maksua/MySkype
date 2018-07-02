@@ -198,8 +198,7 @@ namespace MySkype.WpfClient.ViewModels
             await GetFriendsAsync();
             await GetUserCallsAsync();
             await GetFriendRequestsAsync();
-
-
+            
             _webSocketClient.Start();
         }
 
@@ -330,7 +329,7 @@ namespace MySkype.WpfClient.ViewModels
         {
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                var callView = new CallWindowView(User, friend, _webSocketClient, _token, _restClient, _notificationService,
+                var callView = new CallWindowView(User, Contacts.ToList(), friend, _webSocketClient, _token, _restClient, _notificationService,
                     isCaller);
 
                 callView.ShowDialog();

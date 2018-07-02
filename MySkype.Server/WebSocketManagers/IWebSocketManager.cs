@@ -9,7 +9,7 @@ namespace MySkype.Server.WebSocketManagers
     {
         void Add(Guid socketId, WebSocket socket);
         Task RemoveAsync(Guid socketId);
-        Task SendMessageAsync(MessageBase message);
+        Task SendAsync(MessageBase message);
         Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer);
         Task<bool> CheckIfUserIsOnlineAsync(Guid id);
     }

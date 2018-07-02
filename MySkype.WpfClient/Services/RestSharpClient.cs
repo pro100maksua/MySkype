@@ -156,5 +156,15 @@ namespace MySkype.WpfClient.Services
 
             return response.Data;
         }
+
+        public async Task<List<Guid>> GetCallParticipantsAsync(Guid callId)
+        {
+            var request = new RestRequest("/api/calls/{callId}/participants",Method.GET);
+            request.AddUrlSegment("callId", callId);
+
+            var response = await _restClient.ExecuteTaskAsync<List<Guid>>(request);
+
+            return response.Data;
+        }
     }
 }

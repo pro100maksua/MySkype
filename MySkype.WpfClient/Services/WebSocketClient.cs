@@ -12,11 +12,7 @@ namespace MySkype.WpfClient.Services
         private readonly NotificationService _notificationService;
         private readonly WebSocket _client;
 
-        public event EventHandler<DataReceivedEventArgs> DataReceived
-        {
-            add => _client.DataReceived += value;
-            remove => _client.DataReceived -= value;
-        }
+        public event EventHandler<DataReceivedEventArgs> DataReceived;
 
         public event EventHandler<ChatMessageReceivedEventArgs> MessageReceived;
 
@@ -53,6 +49,10 @@ namespace MySkype.WpfClient.Services
                     case MessageType.Message:
                         var message = JsonConvert.DeserializeObject<Message>(e.Message);
                         HandleMessage(message);
+                        break;
+                    case MessageType.Data:
+                        var data = JsonConvert.DeserializeObject<Data>(e.Message);
+                        HandleData(data);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -128,6 +128,15 @@ namespace MySkype.WpfClient.Services
                 SenderId = message.SenderId
             });
         }
+
+        private void HandleData(Data data)
+        {
+            DataReceived?.Invoke(this, new DataReceivedEventArgs
+            {
+                Data = data.Bytes,
+                SenderId = data.SenderId
+            });
+        }
     }
 
     public class ChatMessageReceivedEventArgs : EventArgs
@@ -135,5 +144,12 @@ namespace MySkype.WpfClient.Services
         public string Content { get; set; }
 
         public Guid SenderId { get; set; }
+    }
+
+    public class DataReceivedEventArgs : EventArgs
+    {
+        public Guid SenderId { get; set; }
+
+        public byte[] Data { get; set; }
     }
 }

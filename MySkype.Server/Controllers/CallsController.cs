@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,7 @@ namespace MySkype.Server.Controllers
         public async Task<IActionResult> GetUserCallsAsync()
         {
             var id = new Guid(User.FindFirst("sid").Value);
-            
+
             var userCalls = await _callsService.GetUserCallsAsync(id);
 
             return Ok(userCalls);
@@ -35,6 +36,14 @@ namespace MySkype.Server.Controllers
             await _callsService.SaveCallInfoAsync(call);
 
             return Ok();
+        }
+
+        [HttpGet("{callId}/participants")]
+        public IActionResult GetCallParticipants(Guid callId)
+        {
+            var ids = _callsService.GetCallParticipants(callId);
+
+            return Ok(ids);
         }
     }
 }

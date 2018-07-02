@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +13,10 @@ namespace MySkype.Server.WebSocketManagers
         private readonly ConcurrentDictionary<Guid, WebSocket> _sockets =
             new ConcurrentDictionary<Guid, WebSocket>();
 
-        public ConcurrentDictionary<Guid, WebSocket> GetAll()
-        {
-            return _sockets;
-        }
+        private ConcurrentDictionary<Guid, HashSet<Guid>> _calls =
+            new ConcurrentDictionary<Guid, HashSet<Guid>>();
 
-        public WebSocket Get(Guid id)
+        public WebSocket GetSocket(Guid id)
         {
             return _sockets.TryGetValue(id, out var socket) ? socket : null;
         }
@@ -31,6 +31,30 @@ namespace MySkype.Server.WebSocketManagers
             _sockets.TryRemove(id, out var socket);
 
             await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "normal closure", CancellationToken.None);
+        }
+
+        public HashSet<Guid> GetCall(Guid userId)
+        {
+            var call = _calls.Values.FirstOrDefault(c => c.Contains(userId));
+
+            return call;
+        }
+
+        public void StartCall(Guid callerId)
+        {
+            _calls[callerId] = new HashSet<Guid> { callerId };
+        }
+
+        public void AddCallFriend(Guid callerId, Guid friendId)
+        {
+            _calls[callerId].Add(friendId);
+        }
+
+        public void RemoveCall(HashSet<Guid> call)
+        {
+            var pair = _calls.FirstOrDefault(p => p.Value == call);
+
+            _calls.Remove(pair.Key, out call);
         }
     }
 }

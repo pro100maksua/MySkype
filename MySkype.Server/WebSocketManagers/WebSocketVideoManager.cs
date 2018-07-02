@@ -27,9 +27,17 @@ namespace MySkype.Server.WebSocketManagers
             await _connectionManager.RemoveSocketAsync(id);
         }
 
-        public Task SendMessageAsync(MessageBase message)
+        public async Task SendAsync(MessageBase message)
         {
-            throw new NotImplementedException();
+            var targetSocket = _connectionManager.GetSocket(message.TargetId);
+
+            if (targetSocket != null)
+            {
+                var json = JsonConvert.SerializeObject(message);
+
+                await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
+                    WebSocketMessageType.Text, true, CancellationToken.None);
+            }
         }
 
         public async Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer)
@@ -37,8 +45,9 @@ namespace MySkype.Server.WebSocketManagers
             var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
             var data = JsonConvert.DeserializeObject<Data>(json);
+            data.SenderId = id;
 
-            await SendBytesAsync(data.TargetId, data.Bytes);
+            await SendAsync(data);
         }
 
         public Task<bool> CheckIfUserIsOnlineAsync(Guid id)
@@ -48,7 +57,7 @@ namespace MySkype.Server.WebSocketManagers
 
         public async Task SendBytesAsync(Guid targetId, byte[] data)
         {
-            var targetSocket = _connectionManager.Get(targetId);
+            var targetSocket = _connectionManager.GetSocket(targetId);
 
             if (targetSocket != null)
             {

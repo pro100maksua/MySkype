@@ -96,7 +96,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Width="230" Height="40" FontSize="24" Text="{Binding SenderName}"/>
                                 <Button Width="40" Height="40"
-                        Command="{Binding Path=AddFriendCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
+                        Command="{Binding Path=DataContext.AddFriendCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
                         CommandParameter="{Binding SenderId}">
                                     <Button.Template>
                                         <ControlTemplate>

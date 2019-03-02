@@ -31,8 +31,8 @@ namespace MySkype.Server.Controllers
         public async Task<IActionResult> UploadAsync(Guid userId, IFormFile file)
         {
             var photo = await _photoService.UploadAsync(userId, file);
-
-            return Ok(photo);
+            
+            return Ok(photo.Id);
         }
     }
 }

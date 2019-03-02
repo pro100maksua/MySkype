@@ -40,10 +40,12 @@ namespace MySkype.Server.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> PostAsync([FromBody] RequestUserDto requestUserDto)
+        public async Task<IActionResult> PostAsync([FromBody] RegisterRequest requestUserDto)
         {
             if (await _userService.UserExistsAsync(requestUserDto.Login))
+            {
                 return BadRequest();
+            }
 
             var user = await _userService.PostAsync(requestUserDto);
 

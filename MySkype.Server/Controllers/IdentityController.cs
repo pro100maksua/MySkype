@@ -24,8 +24,10 @@ namespace MySkype.Server.Controllers
         {
             var token = await _identityService.RequestTokenAsync(request);
 
-            if (token == null)
+            if (string.IsNullOrWhiteSpace(token))
+            {
                 return BadRequest("Invalid login or password.");
+            }
 
             return Ok(token);
         }

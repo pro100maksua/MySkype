@@ -13,7 +13,7 @@ namespace MySkype.Server.WebSocketManagers
         private readonly ConcurrentDictionary<Guid, WebSocket> _sockets =
             new ConcurrentDictionary<Guid, WebSocket>();
 
-        private ConcurrentDictionary<Guid, HashSet<Guid>> _calls =
+        private readonly ConcurrentDictionary<Guid, HashSet<Guid>> _calls =
             new ConcurrentDictionary<Guid, HashSet<Guid>>();
 
         public WebSocket GetSocket(Guid id)

@@ -3,20 +3,21 @@ using System.Collections.ObjectModel;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MySkype.WpfClient.ApiInterfaces;
 using MySkype.WpfClient.Models;
-using MySkype.WpfClient.Services;
 using Nito.Mvvm;
 using ReactiveUI;
+using RestEase;
 
 namespace MySkype.WpfClient.ViewModels
 {
     public class AuthWindowViewModel : ViewModelBase
     {
-        private readonly RestSharpClient _restClient;
-        private ObservableCollection<string> _errorMessagges;
-        private string _token;
+        private ObservableCollection<string> _errorMessages;
         private bool _isSignUp;
         private SignUpRequest _form = new SignUpRequest();
+        private readonly ILoginApi _loginClient;
+        private readonly IUsersApi _userClient;
 
         public bool IsSignUp
         {
@@ -25,8 +26,8 @@ namespace MySkype.WpfClient.ViewModels
         }
         public ObservableCollection<string> ErrorMessages
         {
-            get => _errorMessagges;
-            set => this.RaiseAndSetIfChanged(ref _errorMessagges, value);
+            get => _errorMessages;
+            set => this.RaiseAndSetIfChanged(ref _errorMessages, value);
         }
         public SignUpRequest Form
         {
@@ -36,7 +37,8 @@ namespace MySkype.WpfClient.ViewModels
 
         public AuthWindowViewModel()
         {
-            _restClient = new RestSharpClient(_token);
+            _loginClient = RestClient.For<ILoginApi>("http://localhost:5000/api/identity");
+            _userClient = RestClient.For<IUsersApi>("http://localhost:5000/api/users");
 
             SubmitCommand = new AsyncCommand(SubmitAsync);
             SignInCommand = new AsyncCommand(SignInAsync);
@@ -54,32 +56,30 @@ namespace MySkype.WpfClient.ViewModels
 
         public event EventHandler<AuthEventArgs> CloseRequested;
 
-        private void OnCloseRequested()
+        private void OnCloseRequested(string token)
         {
-            CloseRequested?.Invoke(this, new AuthEventArgs { Token = _token });
+            CloseRequested?.Invoke(this, new AuthEventArgs { Token = token });
         }
 
         public async Task SignInAsync()
         {
             ErrorMessages = new ObservableCollection<string>();
-            if (Form.Login != null && Form.Password != null)
+
+            if (string.IsNullOrWhiteSpace(Form.Login) || string.IsNullOrWhiteSpace(Form.Password))
             {
-                var tokenRequest = new TokenRequest { Login = Form.Login, Password = Form.Password };
+                ErrorMessages.Add(" - Fields can't be empty.");
+                return;
+            }
+            var tokenRequest = new TokenRequest { Login = Form.Login, Password = Form.Password };
+            var response = await _loginClient.LoginAsync(tokenRequest);
 
-                _token = await _restClient.RequestTokenAsync(tokenRequest);
-
-                if (_token == null)
-                {
-                    ErrorMessages.Add(" - Invalid login or password.");
-                }
-                else
-                {
-                    OnCloseRequested();
-                }
+            if (!response.ResponseMessage.IsSuccessStatusCode)
+            {
+                ErrorMessages.Add(" - Invalid login or password.");
             }
             else
             {
-                ErrorMessages.Add(" - Fields can't be empty.");
+                OnCloseRequested(response.StringContent);
             }
         }
 
@@ -88,9 +88,9 @@ namespace MySkype.WpfClient.ViewModels
             ErrorMessages = new ObservableCollection<string>();
             if (IsValid())
             {
-                var statusCode = await _restClient.SignUpAsync(Form);
+                var response = await _userClient.RegisterAsync(Form);
 
-                if (statusCode == HttpStatusCode.BadRequest)
+                if (response.ResponseMessage.StatusCode == HttpStatusCode.BadRequest)
                 {
                     ErrorMessages.Add(" - Login already exists.");
                     return;

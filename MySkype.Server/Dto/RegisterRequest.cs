@@ -1,6 +1,6 @@
 ﻿namespace MySkype.Server.Dto
 {
-    public class RequestUserDto
+    public class RegisterRequest
     {
         public string Login { get; set; }
 

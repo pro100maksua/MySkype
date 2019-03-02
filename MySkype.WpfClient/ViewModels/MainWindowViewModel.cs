@@ -4,23 +4,29 @@ using System.Collections.ObjectModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using MySkype.WpfClient.ApiInterfaces;
 using MySkype.WpfClient.Models;
 using MySkype.WpfClient.Services;
 using MySkype.WpfClient.Views;
 using Nito.Mvvm;
 using ReactiveUI;
-using RestSharp.Extensions;
+using RestEase;
 
 namespace MySkype.WpfClient.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private RestSharpClient _restClient;
+        private readonly IUsersApi _usersClient;
+        private readonly ICallsApi _callsClient;
+        private readonly IPhotosApi _photosClient;
+        private readonly IUserFriendsApi _userFriendsClient;
         private WebSocketClient _webSocketClient;
         private readonly NotificationService _notificationService;
 
@@ -38,7 +44,6 @@ namespace MySkype.WpfClient.ViewModels
             new List<IGrouping<DateTime, CallRepresentation>>();
 
         private string _token;
-
 
         public ObservableCollection<User> Contacts
         {
@@ -115,23 +120,7 @@ namespace MySkype.WpfClient.ViewModels
             set => this.RaiseAndSetIfChanged(ref _isSearchBoxEmpty, value);
         }
 
-        public MainWindowViewModel()
-        {
-            _notificationService = new NotificationService();
-
-            _notificationService.FriendRequestReceived += ReceiveFriendRequestAsync;
-            _notificationService.CallRequestReceived += ReceiveCallAsync;
-
-            InitAsync();
-
-            SearchCommand = new AsyncCommand(SearchAsync);
-            ChoosePhotoCommand = new AsyncCommand(ChoosePhotoAsync);
-            SendFriendRequestCommand = new AsyncCommand(SendFriendRequestAsync);
-            SendAudioCallRequestCommand = new AsyncCommand(SendAudioCallRequestAsync);
-            AddFriendCommand = new AsyncCommand(senderId => AddFriendAsync((Guid)senderId));
-            SetFriendCommand = new AsyncCommand(friend => SetLargeAreaAsync((User)friend));
-        }
-
+        public AsyncCommand InitCommand { get; set; }
         public AsyncCommand SearchCommand { get; set; }
         public AsyncCommand SetFriendCommand { get; set; }
         public AsyncCommand ChoosePhotoCommand { get; }
@@ -140,26 +129,44 @@ namespace MySkype.WpfClient.ViewModels
         public AsyncCommand SendAudioCallRequestCommand { get; }
         public AsyncCommand SendVideoCallRequestCommand { get; }
 
+        public MainWindowViewModel()
+        {
+            var authWindow = new AuthWindowView();
+            authWindow.ShowDialog();
+            _token = authWindow.Token;
+
+            _usersClient = RestClient.For<IUsersApi>("http://localhost:5000/api/users");
+            _userFriendsClient = RestClient.For<IUserFriendsApi>("http://localhost:5000/api/user/friends"); ;
+            _callsClient = RestClient.For<ICallsApi>("http://localhost:5000/api/calls");
+            _photosClient = RestClient.For<IPhotosApi>("http://localhost:5000/api/photos");
+
+            var header = "Bearer " + _token;
+            _usersClient.Token = header;
+            _userFriendsClient.Token = header;
+            _callsClient.Token = header;
+            _photosClient.Token = header;
+
+            _notificationService = new NotificationService();
+            _notificationService.FriendRequestReceived += ReceiveFriendRequestAsync;
+            _notificationService.CallRequestReceived += ReceiveCallAsync;
+
+            SearchCommand = new AsyncCommand(SearchAsync);
+            ChoosePhotoCommand = new AsyncCommand(ChoosePhotoAsync);
+            SendFriendRequestCommand = new AsyncCommand(SendFriendRequestAsync);
+            SendAudioCallRequestCommand = new AsyncCommand(SendAudioCallRequestAsync);
+            AddFriendCommand = new AsyncCommand(senderId => AddFriendAsync((Guid)senderId));
+            SetFriendCommand = new AsyncCommand(friend => SetLargeAreaAsync((User)friend));
+            InitCommand = new AsyncCommand(InitAsync);
+        }
 
         private async Task GetPhotoAsync(User user)
         {
-            var file = await _restClient.GetPhotoAsync(user.Avatar.Id);
-
-            const string folder = "photos";
-
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-
-            var path = !user.Avatar.FileName.Contains(folder)
-                ? Path.Combine(folder, user.Avatar.FileName)
-                : user.Avatar.FileName;
-
-            file.SaveAs(path);
-
+            var file = await _photosClient.DownloadAsync(user.Avatar.Id);
+           
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.UriSource = new Uri(path, UriKind.Relative);
+            bitmap.StreamSource = file;
             bitmap.EndInit();
 
             user.Avatar.Bitmap = bitmap;
@@ -167,7 +174,7 @@ namespace MySkype.WpfClient.ViewModels
 
         public async Task GetFriendsAsync()
         {
-            var friends = await _restClient.GetFriendsAsync();
+            var friends = await _userFriendsClient.GetFriendsAsync();
 
             foreach (var friend in friends)
             {
@@ -179,18 +186,11 @@ namespace MySkype.WpfClient.ViewModels
 
         public async Task InitAsync()
         {
-            var authWindow = new AuthWindowView();
-
-
-            authWindow.ShowDialog();
-            _token = authWindow.Token;
-
-            _restClient = new RestSharpClient(_token);
             _webSocketClient = new WebSocketClient(_notificationService, _token, "general");
 
             var jwtToken = new JwtSecurityToken(_token);
             var userId = new Guid(jwtToken.Claims.FirstOrDefault(c => c.Type.Equals("sid"))?.Value);
-            var user = await _restClient.GetUserAsync(userId);
+            var user = await _usersClient.GetUserAsync(userId);
 
             await GetPhotoAsync(user);
             User = user;
@@ -198,13 +198,13 @@ namespace MySkype.WpfClient.ViewModels
             await GetFriendsAsync();
             await GetUserCallsAsync();
             await GetFriendRequestsAsync();
-            
+
             _webSocketClient.Start();
         }
 
         private async Task GetUserCallsAsync()
         {
-            var calls = await _restClient.GetUserCallsAsync();
+            var calls = await _callsClient.GetCallsAsync();
 
             var callRepr = calls.Select(c =>
             {
@@ -226,14 +226,14 @@ namespace MySkype.WpfClient.ViewModels
 
         public async Task SearchAsync()
         {
-            List<User> users;
+            IEnumerable<User> users;
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
-                users = await _restClient.GetUsersAsync(SearchQuery);
+                users = await _usersClient.GetAllAsync(SearchQuery);
             }
             else
             {
-                users = await _restClient.GetFriendsAsync();
+                users = await _userFriendsClient.GetFriendsAsync();
             }
 
             foreach (var user in users)
@@ -249,11 +249,11 @@ namespace MySkype.WpfClient.ViewModels
             var notification = Notifications.FirstOrDefault(n => n.SenderId == senderId);
             Notifications.Remove(notification);
 
-            var isAdded = await _restClient.AddFriendAsync(senderId);
+            var isAdded = await _userFriendsClient.ConfirmFriendRequestAsync(senderId);
 
             if (isAdded)
             {
-                var friend = await _restClient.GetUserAsync(senderId);
+                var friend = await _usersClient.GetUserAsync(senderId);
                 await GetPhotoAsync(friend);
 
                 Contacts.Add(friend);
@@ -270,18 +270,29 @@ namespace MySkype.WpfClient.ViewModels
             };
             if (dialog.ShowDialog() == true)
             {
-                await _restClient.SetPhotoAsync(User, dialog.FileName);
+                using (var content = new MultipartFormDataContent())
+                {
+                    var file = File.OpenRead(dialog.FileName);
+                    content.Add(new StreamContent(file)
+                    {
+                        Headers =
+                        {
+                            ContentLength = file.Length,
+                            ContentType = new MediaTypeHeaderValue("image/png")
+                        }
+                    }, "file", dialog.FileName);
+                    await _photosClient.UploadAsync(User.Id, content);
+                }
 
                 await GetPhotoAsync(User);
             }
         }
 
-
         public async Task SendFriendRequestAsync()
         {
             IsLargeUserFriend = true;
 
-            await _restClient.SendFriendRequestAsync(Friend.Id);
+            await _userFriendsClient.SendFriendRequestAsync(Friend.Id);
         }
 
         private async Task GetFriendRequestsAsync()
@@ -294,7 +305,7 @@ namespace MySkype.WpfClient.ViewModels
 
         private async Task ReceiveFriendRequestAsync(Guid senderId)
         {
-            var user = await _restClient.GetUserAsync(senderId);
+            var user = await _usersClient.GetUserAsync(senderId);
             var notification = new Message { SenderId = user.Id, SenderName = user.FullName };
 
             if (Notifications.FirstOrDefault(n => n.SenderId == notification.SenderId) != null) return;
@@ -329,7 +340,7 @@ namespace MySkype.WpfClient.ViewModels
         {
             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                var callView = new CallWindowView(User, Contacts.ToList(), friend, _webSocketClient, _token, _restClient, _notificationService,
+                var callView = new CallWindowView(User, Contacts.ToList(), friend, _webSocketClient, _token, _notificationService,
                     isCaller);
 
                 callView.ShowDialog();
@@ -340,23 +351,25 @@ namespace MySkype.WpfClient.ViewModels
         {
             await Task.Run(() =>
             {
-                if (user != null)
+                if (user == null)
                 {
-                    Friend = user;
-                    FriendCalls = Calls
-                        .Where(c => c.UserId == user.Id)
-                        .OrderBy(c => c.StartTime)
-                        .GroupBy(c => c.StartTime.Date)
-                        .ToList();
-
-                    IsLargeUserFriend = Contacts.Contains(user);
+                    return;
                 }
+
+                Friend = user;
+                FriendCalls = Calls
+                    .Where(c => c.UserId == user.Id)
+                    .OrderBy(c => c.StartTime)
+                    .GroupBy(c => c.StartTime.Date)
+                    .ToList();
+
+                IsLargeUserFriend = Contacts.Contains(user);
             });
         }
 
         public async Task SendAudioCallRequestAsync()
         {
-            var isOnline = await _restClient.CheckIfUserOnlineAsync(Friend.Id);
+            var isOnline = await _usersClient.CheckIfUserOnlineAsync(Friend.Id);
 
             if (!isOnline)
             {
@@ -367,7 +380,6 @@ namespace MySkype.WpfClient.ViewModels
             _webSocketClient.SendNotificationAsync(Friend.Id, NotificationType.CallRequest);
 
             await ShowCallWindowAsync(Friend, isCaller: true);
-
         }
     }
 }

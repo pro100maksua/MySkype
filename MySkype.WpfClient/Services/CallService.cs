@@ -1,13 +1,13 @@
 ﻿using System;
 using NAudio.Wave;
-using WebSocket4Net;
 
 namespace MySkype.WpfClient.Services
 {
     public class CallService
     {
         private readonly WebSocketClient _webSocketClient;
-        private readonly Guid _friendId;
+        private readonly Guid _friendId; 
+
         private WaveIn _input = new WaveIn { WaveFormat = new WaveFormat(8000, 16, 1), BufferMilliseconds = 100 };
         private BufferedWaveProvider _bufferStream = new BufferedWaveProvider(new WaveFormat(8000, 16, 1));
         private readonly Codec _codec = new Codec();

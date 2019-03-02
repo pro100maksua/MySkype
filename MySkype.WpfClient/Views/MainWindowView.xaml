@@ -15,6 +15,12 @@
         <local:ReverseVisibilityConverter x:Key="ReverseVisibilityConverter"/>
     </Window.Resources>
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding InitCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="90"/>
@@ -32,7 +38,7 @@
 
             <ContentControl Grid.Row="0" Grid.ColumnSpan="3">
                 <StackPanel Orientation="Horizontal">
-                    <Button Width="60" Height="60" Command="{Binding ChoosePhotoCommand}">
+                    <Button Width="60" Height="60" Command="{Binding ChoosePhotoCommand}" VerticalAlignment="Bottom">
                         <Button.Template>
                             <ControlTemplate>
                                 <uc:PhotoUserControl Radius="60" Source="{Binding Path=User.Avatar.Bitmap}"/>

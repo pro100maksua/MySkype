@@ -52,9 +52,9 @@ namespace MySkype.Server.Services
 
             return dto;
         }
-        public async Task<User> PostAsync(RequestUserDto dto)
+        public async Task<User> PostAsync(RegisterRequest dto)
         {
-            var user = _mapper.Map<RequestUserDto, User>(dto);
+            var user = _mapper.Map<RegisterRequest, User>(dto);
 
             var photoId = await _photoService.CreateDefaultPhotoAsync(user.FirstName, user.LastName);
 

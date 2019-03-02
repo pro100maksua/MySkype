@@ -11,19 +11,21 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using AForge.Video;
 using AForge.Video.DirectShow;
+using MySkype.WpfClient.ApiInterfaces;
 using MySkype.WpfClient.Models;
 using MySkype.WpfClient.Services;
 using Nito.Mvvm;
 using ReactiveUI;
+using RestEase;
 
 namespace MySkype.WpfClient.ViewModels
 {
     class CallWindowViewModel : ViewModelBase
     {
+        private readonly ICallsApi _callsClient;
         private readonly User _user;
         private ObservableCollection<User> _participants;
         private readonly WebSocketClient _webSocketClient;
-        private readonly RestSharpClient _restClient;
         private readonly NotificationService _notificationService;
         private readonly CallService _callService;
         private readonly VideoCaptureDevice _webCam;
@@ -112,13 +114,15 @@ namespace MySkype.WpfClient.ViewModels
         public AsyncCommand ShowFriendsCommand { get; set; }
         public AsyncCommand AddFriendToCallCommand { get; set; }
 
-        public CallWindowViewModel(User user, List<User> friends, User friend, WebSocketClient webSocketClient, string token,
-            RestSharpClient restClient, NotificationService notificationService, bool isCaller)
+        public CallWindowViewModel(User user, List<User> friends, User friend, WebSocketClient webSocketClient,
+            string token, NotificationService notificationService, bool isCaller)
         {
             Friend = friend;
-            _restClient = restClient;
             IsCaller = isCaller;
             _user = user;
+
+            _callsClient = RestClient.For<ICallsApi>("http://localhost:5000/api/calls");
+            _callsClient.Token = "Bearer " + token;
 
             GetParticipantsAsync().ContinueWith(t =>
             {
@@ -177,7 +181,7 @@ namespace MySkype.WpfClient.ViewModels
 
             if (!IsCaller)
             {
-                var participantIds = await _restClient.GetCallParticipantsAsync(Friend.Id);
+                var participantIds = await _callsClient.GetCallParticipantsAsync(Friend.Id);
 
                 foreach (var id in participantIds)
                 {
@@ -239,9 +243,9 @@ namespace MySkype.WpfClient.ViewModels
             });
         }
 
-        private async void NewWebCamFrame(object sender, NewFrameEventArgs eventargs)
+        private async void NewWebCamFrame(object sender, NewFrameEventArgs eventArgs)
         {
-            using (var bitmap = (Bitmap)eventargs.Frame.Clone())
+            using (var bitmap = (Bitmap)eventArgs.Frame.Clone())
             {
                 var memory = new MemoryStream();
                 bitmap.Save(memory, ImageFormat.Jpeg);
@@ -296,12 +300,11 @@ namespace MySkype.WpfClient.ViewModels
             {
                 if (_videoPlaying)
                 {
-                    _webSocketVideoClient.DataReceived -= FrameReceived;
-                    Frame = null;
+                    _webCam.NewFrame -= NewWebCamFrame;
                 }
                 else
                 {
-                    _webSocketVideoClient.DataReceived += FrameReceived;
+                    _webCam.NewFrame += NewWebCamFrame;
                 }
 
                 _videoPlaying = !_videoPlaying;
@@ -399,7 +402,7 @@ namespace MySkype.WpfClient.ViewModels
                     ParticipantIds = new List<Guid> { Friend.Id, _user.Id }
                 };
 
-                await _restClient.SaveCallInfoAsync(call);
+                await _callsClient.SaveCallInfoAsync(call);
             });
         }
     }

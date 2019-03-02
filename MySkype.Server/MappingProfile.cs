@@ -8,7 +8,7 @@ namespace MySkype.Server
     {
         public MappingProfile()
         {
-            CreateMap<RequestUserDto, User>().ReverseMap();
+            CreateMap<RegisterRequest, User>().ReverseMap();
 
             CreateMap<User, ResponseUserDto>();
         }

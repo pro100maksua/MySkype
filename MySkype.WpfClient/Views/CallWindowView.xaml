@@ -52,7 +52,7 @@
             <ItemsControl ItemsSource="{Binding Frames}" Width="320" Height="260">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Image  Width="320" Height="240" Source="{Binding Path=Value}"></Image>
+                        <Image  Width="320" Height="240" Source="{Binding Path=Value}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -100,7 +100,7 @@
 
         </StackPanel>
         <ListBox Name="Friends" Grid.Column="1" Width="300" Height="400" ItemsSource="{Binding Path=Friends}" 
-                 Visibility="{Binding Path=IsAddingFriendToCall, Converter={StaticResource VisibilityConverter}}">
+                 Visibility="{Binding Path=IsAddingFriendToCall, Converter={StaticResource VisibilityConverter}}" SelectionChanged="Friends_SelectionChanged">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="MouseDoubleClick">
                     <i:InvokeCommandAction Command="{Binding AddFriendToCallCommand}" 

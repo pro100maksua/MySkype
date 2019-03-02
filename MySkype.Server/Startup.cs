@@ -5,7 +5,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,8 +68,7 @@ namespace MySkype.Server
 
             services.AddCors(c => c.AddPolicy("Policy", builder =>
             {
-                builder
-                    .AllowAnyMethod()
+                builder.AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowAnyOrigin();
             }));
@@ -98,13 +96,9 @@ namespace MySkype.Server
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseHsts();
-            }
 
-            app.UseAuthentication();
             app.UseCors("Policy");
+            app.UseAuthentication();
             app.UseWebSockets();
             app.Map("/general",
                 builder => builder.UseMiddleware<WebSocketMiddleware>(serviceProvider.GetService<WebSocketManager>()));
@@ -112,7 +106,7 @@ namespace MySkype.Server
                 builder => builder.UseMiddleware<WebSocketMiddleware>(serviceProvider.GetService<WebSocketVideoManager>()));
             app.UseSwagger();
             app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", ""); });
-            app.UseHttpsRedirection();
+            
             app.UseMvc();
         }
     }

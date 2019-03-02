@@ -74,8 +74,8 @@
     <Reference Include="ReactiveUI, Version=8.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ReactiveUI.8.3.1\lib\net461\ReactiveUI.dll</HintPath>
     </Reference>
-    <Reference Include="RestSharp, Version=106.3.1.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
-      <HintPath>..\packages\RestSharp.106.3.1\lib\net452\RestSharp.dll</HintPath>
+    <Reference Include="RestEase">
+      <HintPath>C:\Users\Maksym\.nuget\packages\restease\1.4.7\lib\netstandard2.0\RestEase.dll</HintPath>
     </Reference>
     <Reference Include="Splat, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Splat.4.0.0\lib\net461\Splat.dll</HintPath>
@@ -149,6 +149,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="ApiInterfaces\ICallsApi.cs" />
+    <Compile Include="ApiInterfaces\ILoginApi.cs" />
+    <Compile Include="ApiInterfaces\IPhotosApi.cs" />
+    <Compile Include="ApiInterfaces\IUserFriendsApi.cs" />
+    <Compile Include="ApiInterfaces\IUsersApi.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -167,7 +172,6 @@
     <Compile Include="Services\Codec.cs" />
     <Compile Include="Models\MyEventArgs.cs" />
     <Compile Include="Services\NotificationService.cs" />
-    <Compile Include="Services\RestSharpClient.cs" />
     <Compile Include="Services\WebSocketClient.cs" />
     <Compile Include="UserControls\PhotoUserControl.xaml.cs">
       <DependentUpon>PhotoUserControl.xaml</DependentUpon>

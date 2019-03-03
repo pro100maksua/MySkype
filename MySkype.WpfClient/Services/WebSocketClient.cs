@@ -34,6 +34,12 @@ namespace MySkype.WpfClient.Services
             _client.Open();
         }
 
+        public void CloseConnection()
+        {
+            _client.Close("normal closure");
+            _client.Dispose();
+        }
+
         private async void OnMessageReceived(object sender, MessageReceivedEventArgs e)
         {
             await Task.Run(() =>
@@ -84,11 +90,11 @@ namespace MySkype.WpfClient.Services
             });
         }
 
-        public async Task SendDataAsync(Guid targetId, byte[] bytes)
+        public async Task SendDataAsync(byte[] bytes)
         {
             await Task.Run(() =>
             {
-                var data = new Data { TargetId = targetId, Bytes = bytes };
+                var data = new Data { Bytes = bytes };
 
                 var json = JsonConvert.SerializeObject(data);
 

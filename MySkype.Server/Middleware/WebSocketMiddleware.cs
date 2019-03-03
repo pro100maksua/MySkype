@@ -30,15 +30,15 @@ namespace MySkype.Server.Middleware
 
             if (context.User.Identity.IsAuthenticated)
             {
-                var id = new Guid(context.User.FindFirst("sid").Value);
+                var userId = new Guid(context.User.FindFirst("sid").Value);
 
-                _webSocketManager.Add(id, socket);
+                _webSocketManager.Add(userId, socket);
 
-                await ReceiveAsync(id, socket);
+                await ReceiveAsync(userId, socket);
             }
         }
 
-        private async Task ReceiveAsync(Guid id, WebSocket socket)
+        private async Task ReceiveAsync(Guid userId, WebSocket socket)
         {
             var buffer = new byte[50 * 1024];
 
@@ -48,10 +48,10 @@ namespace MySkype.Server.Middleware
                 switch (result.MessageType)
                 {
                     case WebSocketMessageType.Text:
-                        await _webSocketManager.ReceiveAsync(id, result, buffer);
+                        await _webSocketManager.ReceiveAsync(userId, result, buffer);
                         break;
                     case WebSocketMessageType.Close:
-                        await _webSocketManager.RemoveAsync(id);
+                        await _webSocketManager.RemoveAsync(userId);
                         break;
                 }
             }

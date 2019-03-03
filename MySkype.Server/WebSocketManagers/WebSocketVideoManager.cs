@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -19,25 +20,12 @@ namespace MySkype.Server.WebSocketManagers
 
         public void Add(Guid id, WebSocket socket)
         {
-            _connectionManager.AddSocket(id, socket);
+            _connectionManager.AddVideoSocket(id, socket);
         }
 
         public async Task RemoveAsync(Guid id)
         {
-            await _connectionManager.RemoveSocketAsync(id);
-        }
-
-        public async Task SendAsync(MessageBase message)
-        {
-            var targetSocket = _connectionManager.GetSocket(message.TargetId);
-
-            if (targetSocket != null)
-            {
-                var json = JsonConvert.SerializeObject(message);
-
-                await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
-                    WebSocketMessageType.Text, true, CancellationToken.None);
-            }
+            await _connectionManager.RemoveVideoSocketAsync(id);
         }
 
         public async Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer)
@@ -50,20 +38,34 @@ namespace MySkype.Server.WebSocketManagers
             await SendAsync(data);
         }
 
+        public async Task SendAsync(MessageBase message)
+        {
+            var call = _connectionManager.GetCall(message.SenderId);
+            if (call != null)
+            {
+                foreach (var callPart in call.Where(c => c != message.SenderId))
+                {
+                    var targetSocket = _connectionManager.GetVideoSocket(callPart);
+                    if (targetSocket != null)
+                    {
+                        var json = JsonConvert.SerializeObject(message);
+
+                        await targetSocket.SendAsync(
+                            new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
+                            WebSocketMessageType.Text, true, CancellationToken.None);
+                    }
+                }
+            }
+        }
+
         public Task<bool> CheckIfUserIsOnlineAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task SendBytesAsync(Guid targetId, byte[] data)
+        public void SendBytes(Guid targetId, byte[] data)
         {
-            var targetSocket = _connectionManager.GetSocket(targetId);
-
-            if (targetSocket != null)
-            {
-                await targetSocket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary,
-                    true, CancellationToken.None);
-            }
+            throw new NotImplementedException();
         }
     }
 }

@@ -32,14 +32,13 @@ namespace MySkype.Server.WebSocketManagers
         public async Task ReceiveAsync(Guid id, WebSocketReceiveResult result, byte[] buffer)
         {
             var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
             var message = JsonConvert.DeserializeObject<MessageBase>(json);
-
 
             if (message.MessageType == MessageType.Data)
             {
                 var data = JsonConvert.DeserializeObject<Data>(json);
-                await SendBytesAsync(id, data.Bytes);
+                data.SenderId = id;
+                await SendBytesAsync(data);
 
                 return;
             }
@@ -52,10 +51,10 @@ namespace MySkype.Server.WebSocketManagers
                 if (notification.NotificationType == NotificationType.CallConfirmed)
                 {
                     var call = _connectionManager.GetCall(notification.TargetId);
-
                     if (call == null)
+                    {
                         _connectionManager.StartCall(notification.TargetId);
-
+                    }
                     _connectionManager.AddCallFriend(notification.TargetId, id);
 
                     call = _connectionManager.GetCall(notification.TargetId).Where(userId => userId != id).ToHashSet();
@@ -69,7 +68,7 @@ namespace MySkype.Server.WebSocketManagers
                 else if (notification.NotificationType == NotificationType.CallEnded)
                 {
                     var call = _connectionManager.GetCall(notification.SenderId);
-
+                    
                     foreach (var userId in call)
                     {
                         notification.TargetId = userId;
@@ -94,18 +93,14 @@ namespace MySkype.Server.WebSocketManagers
         private async Task SendMessageAsync(MessageBase message)
         {
             var call = _connectionManager.GetCall(message.SenderId);
-
-            foreach (var userId in call)
+            
+            foreach (var callPart in call)
             {
-                var targetSocket = _connectionManager.GetSocket(userId);
+                var targetSocket = _connectionManager.GetSocket(callPart);
+                var json = JsonConvert.SerializeObject(message);
 
-                if (targetSocket != null)
-                {
-                    var json = JsonConvert.SerializeObject(message);
-
-                    await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
-                        WebSocketMessageType.Text, true, CancellationToken.None);
-                }
+                await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
+                    WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
 
@@ -132,21 +127,18 @@ namespace MySkype.Server.WebSocketManagers
             }
         }
 
-        public async Task SendBytesAsync(Guid id, byte[] data)
+        public async Task SendBytesAsync(MessageBase message)
         {
-            var call = _connectionManager.GetCall(id)?.Where(u => u != id);
-
+            var call = _connectionManager.GetCall(message.SenderId);
             if (call != null)
             {
-                foreach (var userId in call)
+                foreach (var callPart in call.Where(c => c != message.SenderId))
                 {
-                    var targetSocket = _connectionManager.GetSocket(userId);
+                    var targetSocket = _connectionManager.GetSocket(callPart);
+                    var json = JsonConvert.SerializeObject(message);
 
-                    if (targetSocket != null)
-                    {
-                        await targetSocket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary,
-                            true, CancellationToken.None);
-                    }
+                    await targetSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(json), 0, json.Length),
+                        WebSocketMessageType.Text, true, CancellationToken.None);
                 }
             }
         }

@@ -85,7 +85,7 @@ namespace MySkype.Server
 
             services.AddSingleton<WebSocketManager>();
             services.AddSingleton<WebSocketVideoManager>();
-            services.AddTransient<WebSocketConnectionManager>();
+            services.AddSingleton<WebSocketConnectionManager>();
 
             services.AddAutoMapper();
         }

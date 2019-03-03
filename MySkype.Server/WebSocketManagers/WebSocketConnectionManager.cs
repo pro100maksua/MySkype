@@ -13,6 +13,9 @@ namespace MySkype.Server.WebSocketManagers
         private readonly ConcurrentDictionary<Guid, WebSocket> _sockets =
             new ConcurrentDictionary<Guid, WebSocket>();
 
+        private readonly ConcurrentDictionary<Guid, WebSocket> _videoSockets =
+            new ConcurrentDictionary<Guid, WebSocket>();
+
         private readonly ConcurrentDictionary<Guid, HashSet<Guid>> _calls =
             new ConcurrentDictionary<Guid, HashSet<Guid>>();
 
@@ -21,22 +24,43 @@ namespace MySkype.Server.WebSocketManagers
             return _sockets.TryGetValue(id, out var socket) ? socket : null;
         }
 
+        public WebSocket GetVideoSocket(Guid id)
+        {
+            return _videoSockets.TryGetValue(id, out var socket) ? socket : null;
+        }
+
         public void AddSocket(Guid id, WebSocket socket)
         {
             _sockets[id] = socket;
         }
 
+        public void AddVideoSocket(Guid id, WebSocket socket)
+        {
+            _videoSockets[id] = socket;
+        }
+
         public async Task RemoveSocketAsync(Guid id)
         {
             _sockets.TryRemove(id, out var socket);
+            if (socket != null)
+            {
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "normal closure", CancellationToken.None);
+            }
+        }
 
-            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "normal closure", CancellationToken.None);
+        public async Task RemoveVideoSocketAsync(Guid id)
+        {
+            _videoSockets.TryRemove(id, out var socket);
+            if (socket != null)
+            {
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "normal closure", CancellationToken.None);
+            }
         }
 
         public HashSet<Guid> GetCall(Guid userId)
         {
             var call = _calls.Values.FirstOrDefault(c => c.Contains(userId));
-
+            
             return call;
         }
 

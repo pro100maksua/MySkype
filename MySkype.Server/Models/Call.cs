@@ -11,6 +11,6 @@ namespace MySkype.Server.Models
 
         public long Duration { get; set; }
 
-        public List<Guid> ParticipantIds { get; set; }
+        public IEnumerable<Guid> ParticipantIds { get; set; }
     }
 }

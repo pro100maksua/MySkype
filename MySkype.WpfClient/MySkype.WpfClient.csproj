@@ -182,6 +182,7 @@
     <Compile Include="ViewModels\CallRequestViewModel.cs" />
     <Compile Include="ViewModels\CallWindowViewModel.cs" />
     <Compile Include="Models\CloseEventArgs.cs" />
+    <Compile Include="Models\ChatMessage.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Models\SignUpRequest.cs" />
     <Compile Include="Models\TokenRequest.cs" />

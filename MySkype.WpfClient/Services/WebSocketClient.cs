@@ -78,11 +78,11 @@ namespace MySkype.WpfClient.Services
             });
         }
 
-        public async Task SendMessageAsync(Guid targetId, string content)
+        public async Task SendMessageAsync(string content)
         {
             await Task.Run(() =>
             {
-                var message = new Message { TargetId = targetId, Content = content };
+                var message = new Message {Content = content };
 
                 var json = JsonConvert.SerializeObject(message);
 

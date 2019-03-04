@@ -10,7 +10,7 @@ namespace MySkype.WpfClient.Services
     {
         private readonly WebSocketClient _webSocketClient;
         private List<KeyValuePair<Guid, Player>> _players = new List<KeyValuePair<Guid, Player>>();
-        private WaveIn _input = new WaveIn {WaveFormat = new WaveFormat(8000, 16, 1), BufferMilliseconds = 100};
+        private WaveIn _input = new WaveIn {WaveFormat = new WaveFormat(8000, 16, 1), BufferMilliseconds = 50};
         private readonly Codec _codec = new Codec();
 
 
@@ -28,7 +28,6 @@ namespace MySkype.WpfClient.Services
             Application.Current.Dispatcher.Invoke(() =>
             {
                 var player = _players.SingleOrDefault(p => p.Key == e.SenderId);
-
                 if (player.Key == Guid.Empty)
                 {
                     _players.Add(new KeyValuePair<Guid, Player>(e.SenderId, new Player(decoded)));

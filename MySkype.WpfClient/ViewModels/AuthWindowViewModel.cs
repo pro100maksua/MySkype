@@ -13,11 +13,12 @@ namespace MySkype.WpfClient.ViewModels
 {
     public class AuthWindowViewModel : ViewModelBase
     {
-        private ObservableCollection<string> _errorMessages;
-        private bool _isSignUp;
-        private SignUpRequest _form = new SignUpRequest();
         private readonly ILoginApi _loginClient;
         private readonly IUsersApi _userClient;
+
+        private bool _isSignUp;
+        private ObservableCollection<string> _errorMessages;
+        private SignUpRequest _form = new SignUpRequest();
 
         public bool IsSignUp
         {
@@ -34,11 +35,16 @@ namespace MySkype.WpfClient.ViewModels
             get => _form;
             set => this.RaiseAndSetIfChanged(ref _form, value);
         }
+        
+        public AsyncCommand SubmitCommand { get; }
+        public AsyncCommand SignUpCommand { get; }
+        public AsyncCommand SignInCommand { get; }
 
         public AuthWindowViewModel()
         {
-            _loginClient = RestClient.For<ILoginApi>("http://localhost:5000/api/identity");
-            _userClient = RestClient.For<IUsersApi>("http://localhost:5000/api/users");
+            const string url = "http://localhost:5000/api/";
+            _loginClient = RestClient.For<ILoginApi>(url + "identity");
+            _userClient = RestClient.For<IUsersApi>(url + "users");
 
             SubmitCommand = new AsyncCommand(SubmitAsync);
             SignInCommand = new AsyncCommand(SignInAsync);
@@ -50,9 +56,6 @@ namespace MySkype.WpfClient.ViewModels
             });
         }
 
-        public AsyncCommand SubmitCommand { get; }
-        public AsyncCommand SignUpCommand { get; }
-        public AsyncCommand SignInCommand { get; }
 
         public event EventHandler<AuthEventArgs> CloseRequested;
 

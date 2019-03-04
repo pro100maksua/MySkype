@@ -68,14 +68,16 @@ namespace MySkype.Server.WebSocketManagers
                 else if (notification.NotificationType == NotificationType.CallEnded)
                 {
                     var call = _connectionManager.GetCall(notification.SenderId);
-                    
-                    foreach (var userId in call)
+                    if (call != null)
                     {
-                        notification.TargetId = userId;
-                        await SendAsync(notification);
-                    }
+                        foreach (var userId in call)
+                        {
+                            notification.TargetId = userId;
+                            await SendAsync(notification);
+                        }
 
-                    _connectionManager.RemoveCall(call);
+                        _connectionManager.RemoveCall(call);
+                    }
                 }
                 else
                 {

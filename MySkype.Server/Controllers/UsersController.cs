@@ -21,11 +21,11 @@ namespace MySkype.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync([FromQuery] string searchQuery)
+        public async Task<IActionResult> GetAllAsync([FromQuery] string searchString)
         {
             var userId = new Guid(User.FindFirst("sid").Value);
 
-            var users = await _userService.GetAllAsync(searchQuery);
+            var users = await _userService.GetAllAsync(searchString);
 
             return Ok(users.Where(u => u.Id != userId));
         }

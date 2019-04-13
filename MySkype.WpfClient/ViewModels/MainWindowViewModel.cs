@@ -159,24 +159,23 @@ namespace MySkype.WpfClient.ViewModels
             _notificationService.FriendRequestReceived += ReceiveFriendRequestAsync;
             _notificationService.CallRequestReceived += ReceiveCallAsync;
             _webSocketClient = new WebSocketClient(_notificationService, _token, "general");
+            _webSocketClient.Start();
 
             var jwt = new JwtSecurityToken(_token);
-            var userId = new Guid(jwt.Claims.First(c => c.Type.Equals("sid")).Value);
+            var userId = new Guid(jwt.Claims.First(c => c.Type.Equals("nameid")).Value);
 
             var user = await _usersClient.GetUserAsync(userId);
-            user.Avatar.Bitmap = await GetPhotoAsync(user.Avatar.Id);
+            user.Avatar.Bitmap = await GetPhotoAsync(user.Id);
             User = user;
 
             Contacts = new ObservableCollection<User>(await GetFriendsAsync());
             Calls = new ObservableCollection<CallRepresentation>(await GetUserCallsAsync());
             Notifications = new ObservableCollection<Message>(await GetFriendRequestsAsync());
-
-            _webSocketClient.Start();
         }
 
-        private async Task<BitmapImage> GetPhotoAsync(Guid photoId)
+        private async Task<BitmapImage> GetPhotoAsync(Guid userId)
         {
-            var photo = await _photosClient.DownloadAsync(photoId);
+            var photo = await _photosClient.DownloadAsync(userId);
 
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
@@ -192,7 +191,7 @@ namespace MySkype.WpfClient.ViewModels
             var friends = (await _userFriendsClient.GetFriendsAsync()).ToList();
             foreach (var friend in friends)
             {
-                friend.Avatar.Bitmap = await GetPhotoAsync(friend.Avatar.Id);
+                friend.Avatar.Bitmap = await GetPhotoAsync(friend.Id);
             }
 
             return friends;
@@ -215,7 +214,8 @@ namespace MySkype.WpfClient.ViewModels
                     Duration = new TimeSpan(c.Duration),
                     StartTime = new DateTime(c.StartTime)
                 };
-            }).OrderByDescending(c => c.StartTime).ToList();
+            })
+                .OrderByDescending(c => c.StartTime).ToList();
 
             return callRepresentations;
         }
@@ -224,10 +224,10 @@ namespace MySkype.WpfClient.ViewModels
         {
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
-                var users = (await _usersClient.GetAllAsync(SearchQuery)).ToList();
+                var users = (await _usersClient.GetAllAsync(SearchQuery)).Where(u => u.Id != User.Id).ToList();
                 foreach (var user in users)
                 {
-                    user.Avatar.Bitmap = await GetPhotoAsync(user.Avatar.Id);
+                    user.Avatar.Bitmap = await GetPhotoAsync(user.Id);
                 }
 
                 SearchResult = new ObservableCollection<User>(users);
@@ -243,7 +243,7 @@ namespace MySkype.WpfClient.ViewModels
             if (isAdded)
             {
                 var friend = await _usersClient.GetUserAsync(senderId);
-                friend.Avatar.Bitmap = await GetPhotoAsync(friend.Avatar.Id);
+                friend.Avatar.Bitmap = await GetPhotoAsync(friend.Id);
 
                 Contacts.Add(friend);
             }
@@ -274,7 +274,7 @@ namespace MySkype.WpfClient.ViewModels
                     await _photosClient.UploadAsync(User.Id, content);
                 }
 
-                User.Avatar.Bitmap = await GetPhotoAsync(User.Avatar.Id);
+                User.Avatar.Bitmap = await GetPhotoAsync(User.Id);
             }
         }
 

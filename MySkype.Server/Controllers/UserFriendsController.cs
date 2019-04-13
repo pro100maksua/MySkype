@@ -2,8 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySkype.Server.Services;
-using MySkype.Server.WebSocketManagers;
+using MySkype.Server.Logic.Interfaces;
 
 namespace MySkype.Server.Controllers
 {
@@ -12,19 +11,17 @@ namespace MySkype.Server.Controllers
     [ApiController]
     public class UserFriendsController : ControllerBase
     {
-        private readonly WebSocketManager _webSocketManager;
-        private readonly UserFriendsService _userFriendsService;
+        private readonly IUserFriendsService _userFriendsService;
 
-        public UserFriendsController(WebSocketManager webSocketManager, UserFriendsService userFriendsService)
+        public UserFriendsController(IUserFriendsService userFriendsService)
         {
-            _webSocketManager = webSocketManager;
             _userFriendsService = userFriendsService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetFriendsAsync()
         {
-            var id = new Guid(User.FindFirst("sid").Value);
+            var id = new Guid(User.Identity.Name);
 
             var friends = await _userFriendsService.GetFriendsAsync(id);
 
@@ -34,7 +31,7 @@ namespace MySkype.Server.Controllers
         [HttpPost("{friendId}")]
         public async Task<IActionResult> SendFriendRequestAsync(Guid friendId)
         {
-            var id = new Guid(User.FindFirst("sid").Value);
+            var id = new Guid(User.Identity.Name);
 
             var result = await _userFriendsService.SendFriendRequestAsync(id, friendId);
 
@@ -44,7 +41,7 @@ namespace MySkype.Server.Controllers
         [HttpPut("{friendId}")]
         public async Task<IActionResult> ConfirmFriendRequestAsync(Guid friendId)
         {
-            var id = new Guid(User.FindFirst("sid").Value);
+            var id = new Guid(User.Identity.Name);
 
             var result = await _userFriendsService.ConfirmFriendRequestAsync(id, friendId);
 

@@ -3,7 +3,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using MySkype.Server.WebSocketManagers;
+using MySkype.Server.Logic.Interfaces;
 
 namespace MySkype.Server.Middleware
 {
@@ -30,7 +30,7 @@ namespace MySkype.Server.Middleware
 
             if (context.User.Identity.IsAuthenticated)
             {
-                var userId = new Guid(context.User.FindFirst("sid").Value);
+                var userId = new Guid(context.User.Identity.Name);
 
                 _webSocketManager.Add(userId, socket);
 

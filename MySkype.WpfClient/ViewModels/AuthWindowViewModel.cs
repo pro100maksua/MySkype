@@ -14,7 +14,6 @@ namespace MySkype.WpfClient.ViewModels
     public class AuthWindowViewModel : ViewModelBase
     {
         private readonly ILoginApi _loginClient;
-        private readonly IUsersApi _userClient;
 
         private bool _isSignUp;
         private ObservableCollection<string> _errorMessages;
@@ -44,7 +43,6 @@ namespace MySkype.WpfClient.ViewModels
         {
             const string url = "http://localhost:5000/api/";
             _loginClient = RestClient.For<ILoginApi>(url + "identity");
-            _userClient = RestClient.For<IUsersApi>(url + "users");
 
             SubmitCommand = new AsyncCommand(SubmitAsync);
             SignInCommand = new AsyncCommand(SignInAsync);
@@ -68,12 +66,12 @@ namespace MySkype.WpfClient.ViewModels
         {
             ErrorMessages = new ObservableCollection<string>();
 
-            if (string.IsNullOrWhiteSpace(Form.Login) || string.IsNullOrWhiteSpace(Form.Password))
+            if (string.IsNullOrWhiteSpace(Form.UserName) || string.IsNullOrWhiteSpace(Form.Password))
             {
                 ErrorMessages.Add(" - Fields can't be empty.");
                 return;
             }
-            var tokenRequest = new TokenRequest { Login = Form.Login, Password = Form.Password };
+            var tokenRequest = new TokenRequest { UserName = Form.UserName, Password = Form.Password };
             var response = await _loginClient.LoginAsync(tokenRequest);
 
             if (!response.ResponseMessage.IsSuccessStatusCode)
@@ -91,11 +89,11 @@ namespace MySkype.WpfClient.ViewModels
             ErrorMessages = new ObservableCollection<string>();
             if (IsValid())
             {
-                var response = await _userClient.RegisterAsync(Form);
+                var response = await _loginClient.RegisterAsync(Form);
 
                 if (response.ResponseMessage.StatusCode == HttpStatusCode.BadRequest)
                 {
-                    ErrorMessages.Add(" - Login already exists.");
+                    ErrorMessages.Add(" - UserName already exists.");
                     return;
                 }
 
@@ -106,7 +104,7 @@ namespace MySkype.WpfClient.ViewModels
         private bool IsValid()
         {
             var errors = 0;
-            if (string.IsNullOrWhiteSpace(Form.Login) || Form.Login.Length < 4)
+            if (string.IsNullOrWhiteSpace(Form.UserName) || Form.UserName.Length < 4)
             {
                 ErrorMessages.Add(" - Login should not be less than four characters.");
                 errors++;

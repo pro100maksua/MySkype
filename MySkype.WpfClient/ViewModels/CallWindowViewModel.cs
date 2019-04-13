@@ -25,6 +25,7 @@ namespace MySkype.WpfClient.ViewModels
         private readonly ICallsApi _callsClient;
         private readonly CallService _callService;
         private readonly WebSocketClient _webSocketClient;
+
         private readonly WebSocketClient _webSocketVideoClient;
         private readonly NotificationService _notificationService;
         private VideoCaptureDevice _webCam;
@@ -98,7 +99,7 @@ namespace MySkype.WpfClient.ViewModels
         public AsyncCommand ToggleVideoCommand { get; set; }
         public AsyncCommand ShowFriendsCommand { get; set; }
         public AsyncCommand AddFriendToCallCommand { get; set; }
-        
+
         public event EventHandler CloseRequested;
 
         public CallWindowViewModel(User user, List<User> friends, User friend, WebSocketClient webSocketClient,
@@ -262,7 +263,32 @@ namespace MySkype.WpfClient.ViewModels
 
             _participants.Add(friend);
         }
+        private void FrameReceived(Data data)
+        {
+            var image = new BitmapImage();
 
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.StreamSource = new MemoryStream(data.Bytes);
+            image.EndInit();
+
+            image.Freeze();
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var pair = Frames.SingleOrDefault(p => p.Key == data.SenderId);
+
+                if (pair.Key == Guid.Empty)
+                {
+                    Frames.Add(new KeyValuePair<Guid, BitmapImage>(data.SenderId, image));
+                }
+                else
+                {
+                    var index = Frames.IndexOf(pair);
+                    Frames[index] = new KeyValuePair<Guid, BitmapImage>(data.SenderId, image);
+                }
+            });
+        }
         private void FrameReceived(object sender, DataReceivedEventArgs e)
         {
             var image = new BitmapImage();

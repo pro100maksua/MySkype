@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySkype.Server.Dto;
-using MySkype.Server.Services;
+using MySkype.Server.Logic.Interfaces;
 
 namespace MySkype.Server.Controllers
 {
@@ -13,9 +11,9 @@ namespace MySkype.Server.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public UsersController(UserService userService)
+        public UsersController(IUserService userService)
         {
             _userService = userService;
         }
@@ -23,31 +21,15 @@ namespace MySkype.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAsync([FromQuery] string searchString)
         {
-            var userId = new Guid(User.FindFirst("sid").Value);
-
             var users = await _userService.GetAllAsync(searchString);
 
-            return Ok(users.Where(u => u.Id != userId));
+            return Ok(users);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAsync(Guid id)
         {
             var user = await _userService.GetAsync(id);
-
-            return Ok(user);
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        public async Task<IActionResult> PostAsync([FromBody] RegisterRequest requestUserDto)
-        {
-            if (await _userService.UserExistsAsync(requestUserDto.Login))
-            {
-                return BadRequest();
-            }
-
-            var user = await _userService.PostAsync(requestUserDto);
 
             return Ok(user);
         }

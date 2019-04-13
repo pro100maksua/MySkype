@@ -15,7 +15,7 @@
         <StackPanel Width="200" HorizontalAlignment="Center" Visibility="{Binding IsSignUp, Converter={StaticResource ReverseVisibilityConverter}}">
             <Image Source="/Assets/auth.png" />
             <TextBlock Text="Login" />
-            <TextBox Text="{Binding Path=Form.Login}" />
+            <TextBox Text="{Binding Path=Form.UserName}" />
             <TextBlock Text="Password" />
             <TextBox Text="{Binding Path=Form.Password}" />
             <ItemsControl ItemsSource="{Binding ErrorMessages}">
@@ -32,7 +32,7 @@
         <StackPanel Width="200" HorizontalAlignment="Center" Visibility="{Binding IsSignUp, Converter={StaticResource VisibilityConverter}}">
 
             <TextBlock Text="Login" />
-            <TextBox Text="{Binding Path=Form.Login}" />
+            <TextBox Text="{Binding Path=Form.UserName}" />
             <TextBlock Text="Password" />
             <TextBox Text="{Binding Path=Form.Password}" />
             <TextBlock Text="Email" />

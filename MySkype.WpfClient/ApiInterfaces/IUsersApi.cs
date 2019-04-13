@@ -16,9 +16,6 @@ namespace MySkype.WpfClient.ApiInterfaces
 
         [Get("{id}")]
         Task<User> GetUserAsync([Path] Guid id);
-        
-        [Post]
-        Task<Response<User>> RegisterAsync([Body] SignUpRequest registerForm);
 
         [Get("{id}/isOnline")]
         Task<bool> CheckIfUserOnlineAsync([Path] Guid id);

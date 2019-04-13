@@ -2,7 +2,7 @@
 {
     public class SignUpRequest
     {
-        public string Login { get; set; } = "Plotva";
+        public string UserName { get; set; } = "Plotva";
         public string LastName { get; set; } 
         public string FirstName { get; set; }
         public string Email { get; set; }

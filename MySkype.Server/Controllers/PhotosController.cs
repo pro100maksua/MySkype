@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MySkype.Server.Services;
+using MySkype.Server.Logic.Interfaces;
 
 namespace MySkype.Server.Controllers
 {
@@ -12,17 +12,21 @@ namespace MySkype.Server.Controllers
     [ApiController]
     public class PhotosController : ControllerBase
     {
-        private readonly PhotoService _photoService;
+        private readonly IPhotoService _photoService;
+        private readonly IUserService _userService;
 
-        public PhotosController(PhotoService photoService)
+
+        public PhotosController(IPhotoService photoService, IUserService userService)
         {
             _photoService = photoService;
+            _userService = userService;
         }
         
-        [HttpGet("{id}")]
-        public async Task<IActionResult> DownloadAsync(Guid id)
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> DownloadAsync(Guid userId)
         {
-            var file = await _photoService.DownloadAsync(id);
+            var photo = await _userService.GetAvatarAsync(userId);
+            var file = await _photoService.DownloadAsync(photo);
 
             return File(file.MemoryStream, file.ContentType);
         }
@@ -30,9 +34,11 @@ namespace MySkype.Server.Controllers
         [HttpPost("{userId}")]
         public async Task<IActionResult> UploadAsync(Guid userId, IFormFile file)
         {
-            var photo = await _photoService.UploadAsync(userId, file);
+            var fileName = await _photoService.SaveAsync(file);
+
+            await _userService.SetAvatarAsync(userId, fileName);
             
-            return Ok(photo.Id);
+            return Ok();
         }
     }
 }

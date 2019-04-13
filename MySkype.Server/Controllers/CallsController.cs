@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySkype.Server.Models;
-using MySkype.Server.Services;
+using MySkype.Server.Data.Models;
+using MySkype.Server.Logic.Interfaces;
 
 namespace MySkype.Server.Controllers
 {
@@ -12,9 +12,9 @@ namespace MySkype.Server.Controllers
     [ApiController]
     public class CallsController : ControllerBase
     {
-        private readonly CallsService _callsService;
+        private readonly ICallsService _callsService;
 
-        public CallsController(CallsService callsService)
+        public CallsController(ICallsService callsService)
         {
             _callsService = callsService;
         }
@@ -22,7 +22,7 @@ namespace MySkype.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUserCallsAsync()
         {
-            var id = new Guid(User.FindFirst("sid").Value);
+            var id = new Guid(User.Identity.Name);
 
             var userCalls = await _callsService.GetUserCallsAsync(id);
 

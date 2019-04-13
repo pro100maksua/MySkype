@@ -11,8 +11,8 @@ namespace MySkype.WpfClient.ApiInterfaces
         [Header("Authorization")]
         string Token { get; set; }
 
-        [Get("{id}")]
-        Task<Stream> DownloadAsync([Path] Guid id);
+        [Get("{userId}")]
+        Task<Stream> DownloadAsync([Path] Guid userId);
 
         [Post("{userId}")]
         Task<Guid> UploadAsync([Path] Guid userId, [Body] MultipartFormDataContent content);
